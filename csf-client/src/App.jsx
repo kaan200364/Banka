@@ -1,122 +1,265 @@
-import { useState } from 'react'
-import reactLogo from './assets/react.svg'
-import viteLogo from './assets/vite.svg'
-import heroImg from './assets/hero.png'
-import './App.css'
+import { useState } from "react";
+import CustomerList from "./components/CustomerList";
+import CustomerForm from "./components/CustomerForm";
+import BankAccountList from "./components/BankAccountList";
+import BankAccountForm from "./components/BankAccountForm";
+import Login from "./components/Login";
+import "./App.css";
+import FinanceForm from "./components/FinanceForm";
+import FinanceList from "./components/FinanceList";
+import QuotationForm from "./components/QuotationForm";
+import QuotationList from "./components/QuotationList";
+import ContractForm from "./components/ContractForm";
+import ContractList from "./components/ContractList";
+import ProjectForm from "./components/ProjectForm";
+import ProjectList from "./components/ProjectList";
+import TaskForm from "./components/TaskForm";
+import TaskList from "./components/TaskList";
+import ReportsDashboard from "./components/ReportsDashboard";
+import UserForm from "./components/UserForm";
+import UserList from "./components/UserList";
 
 function App() {
-  const [count, setCount] = useState(0)
+  const [user, setUser] = useState(() => {
+    const token = localStorage.getItem("token");
+    if (!token) return null;
+    return {
+      userID: localStorage.getItem("userID"),
+      username: localStorage.getItem("username"),
+      fullName: localStorage.getItem("fullName"),
+      role: localStorage.getItem("role"),
+    };
+  });
+
+  const [activeTab, setActiveTab] = useState("customers");
+  const [editingCustomer, setEditingCustomer] = useState(null);
+  const [customerRefresh, setCustomerRefresh] = useState(0);
+  const [bankRefresh, setBankRefresh] = useState(0);
+  const [financeRefresh, setFinanceRefresh] = useState(0);
+  const [quotationRefresh, setQuotationRefresh] = useState(0);
+  const [contractRefresh, setContractRefresh] = useState(0);
+  const [projectRefresh, setProjectRefresh] = useState(0);
+  const [taskRefresh, setTaskRefresh] = useState(0);
+  const [userRefresh, setUserRefresh] = useState(0);
+  const [editingBankAccount, setEditingBankAccount] = useState(null);
+  const [editingQuotation, setEditingQuotation] = useState(null);
+  const [editingProject, setEditingProject] = useState(null);
+
+  function handleLoginSuccess(result) {
+    setUser({
+      userID: result.userID,
+      username: result.username,
+      fullName: result.fullName,
+      role: result.role,
+    });
+  }
+
+  function handleLogout() {
+    localStorage.clear();
+    setUser(null);
+  }
+
+  function handleCustomerSaved() {
+    setEditingCustomer(null);
+    setCustomerRefresh((prev) => prev + 1);
+  }
+
+  function handleBankAccountSaved() {
+    setEditingBankAccount(null);
+    setBankRefresh((prev) => prev + 1);
+  }
+  function handleFinanceSaved() {
+    setFinanceRefresh((prev) => prev + 1);
+  }
+  function handleQuotationSaved() {
+    setEditingQuotation(null);
+    setQuotationRefresh((prev) => prev + 1);
+  }
+  function handleContractSaved() {
+    setContractRefresh((prev) => prev + 1);
+  }
+  function handleProjectSaved() {
+    setEditingProject(null);
+    setProjectRefresh((prev) => prev + 1);
+  }
+  function handleTaskSaved() {
+    setTaskRefresh((prev) => prev + 1);
+  }
+  function handleUserSaved() {
+    setUserRefresh((prev) => prev + 1);
+  }
+
+  if (!user) {
+    return <Login onLoginSuccess={handleLoginSuccess} />;
+  }
+
+  const canSeeBankModule = user.role === "Administrator" || user.role === "Manager";
+  const canSeeFinanceModule = ["Administrator", "Employee", "Manager"].includes(user.role);
+  const canSeeQuotationModule = ["Administrator", "Employee"].includes(user.role);
+  const canSeeContractModule = user.role === "Administrator" || user.role === "Manager";
+  const canSeeProjectModule = user.role === "Administrator" || user.role === "Manager";
+  const canCreateTask = user.role === "Administrator" || user.role === "Manager";
+  const canSeeReportsModule = user.role === "Administrator" || user.role === "Manager";
+  const canSeeUserModule = user.role === "Administrator";
 
   return (
-    <>
-      <section id="center">
-        <div className="hero">
-          <img src={heroImg} className="base" width="170" height="179" alt="" />
-          <img src={reactLogo} className="framework" alt="React logo" />
-          <img src={viteLogo} className="vite" alt="Vite logo" />
+    <div className="app">
+      <header className="app-header">
+        <h1>CSF Yönetim Sistemi</h1>
+        <div className="user-info">
+          <span>{user.fullName} ({user.role})</span>
+          <button className="secondary" onClick={handleLogout}>Çıkış Yap</button>
         </div>
-        <div>
-          <h1>Get started</h1>
-          <p>
-            Edit <code>src/App.jsx</code> and save to test <code>HMR</code>
-          </p>
-        </div>
+      </header>
+
+      <nav className="tab-nav">
         <button
-          type="button"
-          className="counter"
-          onClick={() => setCount((count) => count + 1)}
+          className={activeTab === "customers" ? "tab active" : "tab"}
+          onClick={() => setActiveTab("customers")}
         >
-          Count is {count}
+          Cari / Tedarikçi
         </button>
-      </section>
+        {canSeeBankModule && (
+          <button
+            className={activeTab === "bank" ? "tab active" : "tab"}
+            onClick={() => setActiveTab("bank")}
+          >
+            Banka Hesapları
+          </button>
+        )}
+        {canSeeFinanceModule && (
+          <button
+            className={activeTab === "finance" ? "tab active" : "tab"}
+            onClick={() => setActiveTab("finance")}
+          >
+            Gelir / Gider
+          </button>
+        )}
+        {canSeeQuotationModule && (
+          <button
+            className={activeTab === "quotations" ? "tab active" : "tab"}
+            onClick={() => setActiveTab("quotations")}
+          >
+            Teklifler
+          </button>
+        )}
+        {canSeeContractModule && (
+          <button
+            className={activeTab === "contracts" ? "tab active" : "tab"}
+            onClick={() => setActiveTab("contracts")}
+          >
+            Sözleşmeler
+          </button>
+        )}
+        {canSeeProjectModule && (
+          <button
+            className={activeTab === "projects" ? "tab active" : "tab"}
+            onClick={() => setActiveTab("projects")}
+          >
+            Projeler
+          </button>
+        )}
+        <button
+          className={activeTab === "tasks" ? "tab active" : "tab"}
+          onClick={() => setActiveTab("tasks")}
+        >
+          Görevler
+        </button>
+        {canSeeReportsModule && (
+          <button
+            className={activeTab === "reports" ? "tab active" : "tab"}
+            onClick={() => setActiveTab("reports")}
+          >
+            Raporlar
+          </button>
+        )}
+        {canSeeUserModule && (
+          <button
+            className={activeTab === "users" ? "tab active" : "tab"}
+            onClick={() => setActiveTab("users")}
+          >
+            Kullanıcılar
+          </button>
+        )}
+      </nav>
 
-      <div className="ticks"></div>
+      <main className="app-main">
+        {activeTab === "customers" && (
+          <>
+            <CustomerForm
+              editingCustomer={editingCustomer}
+              onSaved={handleCustomerSaved}
+              onCancel={() => setEditingCustomer(null)}
+            />
+            <CustomerList onEdit={setEditingCustomer} refreshTrigger={customerRefresh} />
+          </>
+        )}
 
-      <section id="next-steps">
-        <div id="docs">
-          <svg className="icon" role="presentation" aria-hidden="true">
-            <use href="/icons.svg#documentation-icon"></use>
-          </svg>
-          <h2>Documentation</h2>
-          <p>Your questions, answered</p>
-          <ul>
-            <li>
-              <a href="https://vite.dev/" target="_blank">
-                <img className="logo" src={viteLogo} alt="" />
-                Explore Vite
-              </a>
-            </li>
-            <li>
-              <a href="https://react.dev/" target="_blank">
-                <img className="button-icon" src={reactLogo} alt="" />
-                Learn more
-              </a>
-            </li>
-          </ul>
-        </div>
-        <div id="social">
-          <svg className="icon" role="presentation" aria-hidden="true">
-            <use href="/icons.svg#social-icon"></use>
-          </svg>
-          <h2>Connect with us</h2>
-          <p>Join the Vite community</p>
-          <ul>
-            <li>
-              <a href="https://github.com/vitejs/vite" target="_blank">
-                <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
-                >
-                  <use href="/icons.svg#github-icon"></use>
-                </svg>
-                GitHub
-              </a>
-            </li>
-            <li>
-              <a href="https://chat.vite.dev/" target="_blank">
-                <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
-                >
-                  <use href="/icons.svg#discord-icon"></use>
-                </svg>
-                Discord
-              </a>
-            </li>
-            <li>
-              <a href="https://x.com/vite_js" target="_blank">
-                <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
-                >
-                  <use href="/icons.svg#x-icon"></use>
-                </svg>
-                X.com
-              </a>
-            </li>
-            <li>
-              <a href="https://bsky.app/profile/vite.dev" target="_blank">
-                <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
-                >
-                  <use href="/icons.svg#bluesky-icon"></use>
-                </svg>
-                Bluesky
-              </a>
-            </li>
-          </ul>
-        </div>
-      </section>
+        {activeTab === "bank" && canSeeBankModule && (
+          <>
+            <BankAccountForm
+              editingAccount={editingBankAccount}
+              onSaved={handleBankAccountSaved}
+              onCancel={() => setEditingBankAccount(null)}
+            />
+            <BankAccountList onEdit={setEditingBankAccount} refreshTrigger={bankRefresh} />
+          </>
+        )}
 
-      <div className="ticks"></div>
-      <section id="spacer"></section>
-    </>
-  )
+        {activeTab === "finance" && canSeeFinanceModule && (
+          <>
+            <FinanceForm userRole={user.role} onSaved={handleFinanceSaved} />
+            <FinanceList refreshTrigger={financeRefresh} />
+          </>
+        )}
+
+        {activeTab === "quotations" && canSeeQuotationModule && (
+          <>
+            <QuotationForm
+              editingQuotation={editingQuotation}
+              onSaved={handleQuotationSaved}
+              onCancel={() => setEditingQuotation(null)}
+            />
+            <QuotationList userRole={user.role} onEdit={setEditingQuotation} refreshTrigger={quotationRefresh} />
+          </>
+        )}
+
+        {activeTab === "contracts" && canSeeContractModule && (
+          <>
+            <ContractForm onSaved={handleContractSaved} />
+            <ContractList refreshTrigger={contractRefresh} />
+          </>
+        )}
+
+        {activeTab === "projects" && canSeeProjectModule && (
+          <>
+            <ProjectForm
+              editingProject={editingProject}
+              onSaved={handleProjectSaved}
+              onCancel={() => setEditingProject(null)}
+            />
+            <ProjectList onEdit={setEditingProject} refreshTrigger={projectRefresh} />
+          </>
+        )}
+
+        {activeTab === "tasks" && (
+          <>
+            {canCreateTask && <TaskForm onSaved={handleTaskSaved} />}
+            <TaskList currentUser={user} refreshTrigger={taskRefresh} />
+          </>
+        )}
+
+        {activeTab === "reports" && canSeeReportsModule && <ReportsDashboard />}
+
+        {activeTab === "users" && canSeeUserModule && (
+          <>
+            <UserForm onSaved={handleUserSaved} />
+            <UserList currentUserId={user.userID} refreshTrigger={userRefresh} />
+          </>
+        )}
+      </main>
+    </div>
+  );
 }
 
-export default App
+export default App;

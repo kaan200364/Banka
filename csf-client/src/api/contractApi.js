@@ -1,0 +1,60 @@
+function getAuthHeaders() {
+    const token = localStorage.getItem("token");
+    return {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${token}`,
+    };
+}
+
+const BASE_URL = "http://localhost:5144/api/v1/contracts";
+
+export async function getContracts(search = "", page = 1, pageSize = 10) {
+    const params = new URLSearchParams();
+    if (search) params.append("search", search);
+    params.append("page", page);
+    params.append("pageSize", pageSize);
+
+    const response = await fetch(`${BASE_URL}?${params.toString()}`, {
+        headers: getAuthHeaders(),
+    });
+    if (!response.ok) throw new Error("Sözleşmeler yüklenemedi");
+    return response.json();
+}
+export async function createContract(data) {
+    const response = await fetch(BASE_URL, {
+        method: "POST",
+        headers: getAuthHeaders(),
+        body: JSON.stringify(data),
+    });
+    if (!response.ok) {
+        const errorData = await response.json();
+        throw errorData;
+    }
+    return response.json();
+}
+
+export async function terminateContract(id, reason) {
+    const response = await fetch(`${BASE_URL}/${id}/terminate`, {
+        method: "PATCH",
+        headers: getAuthHeaders(),
+        body: JSON.stringify({ reason }),
+    });
+    if (!response.ok) {
+        const errorData = await response.json();
+        throw errorData;
+    }
+    return response.json();
+}
+
+export async function renewContract(id, newEndDate) {
+    const response = await fetch(`${BASE_URL}/${id}/renew`, {
+        method: "POST",
+        headers: getAuthHeaders(),
+        body: JSON.stringify({ newEndDate }),
+    });
+    if (!response.ok) {
+        const errorData = await response.json();
+        throw errorData;
+    }
+    return response.json();
+}
