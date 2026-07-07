@@ -1,0 +1,67 @@
+using CSF.API.DTOs;
+using CSF.API.Services;
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
+using System.Security.Claims;
+
+namespace CSF.API.Controllers
+{
+    [ApiController]
+    [Route("api/v1/[controller]")]
+    [Authorize]
+    public class TasksController : ControllerBase
+    {
+        private readonly TaskService _taskService;
+
+        public TasksController(TaskService taskService)
+        {
+            _taskService = taskService;
+        }
+
+[HttpGet]
+public async Task<ActionResult<PagedResultDto<TaskDto>>> GetAll(
+    [FromQuery] string? search, [FromQuery] int page = 1, [FromQuery] int pageSize = 10)
+{
+    return Ok(await _taskService.GetAllAsync(search, page, pageSize));
+}
+
+        // Sadece Manager (+Administrator) görev oluşturabilir
+        [HttpPost]
+        [Authorize(Roles = "Administrator,Manager")]
+        public async Task<ActionResult<TaskDto>> Create(CreateTaskDto dto)
+        {
+            var username = User.FindFirstValue(ClaimTypes.Name);
+            try
+            {
+                var created = await _taskService.CreateAsync(dto, username);
+                return Ok(created);
+            }
+            catch (InvalidOperationException ex)
+            {
+                return BadRequest(new { message = ex.Message });
+            }
+        }
+
+        // Herkes girebilir, ama Service içinde "kendi görevi mi" kontrolü var
+        [HttpPatch("{id}/status")]
+        public async Task<ActionResult<TaskDto>> UpdateStatus(Guid id, UpdateTaskStatusDto dto)
+        {
+            var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            var userRole = User.FindFirstValue(ClaimTypes.Role);
+
+            try
+            {
+                var updated = await _taskService.UpdateStatusAsync(id, dto, userId!, userRole!);
+                return Ok(updated);
+            }
+            catch (UnauthorizedAccessException ex)
+            {
+                return StatusCode(403, new { message = ex.Message });
+            }
+            catch (InvalidOperationException ex)
+            {
+                return BadRequest(new { message = ex.Message });
+            }
+        }
+    }
+}

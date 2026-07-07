@@ -1,0 +1,6 @@
+@CSF.API_HostAddress = http://localhost:5144
+
+GET {{CSF.API_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###
