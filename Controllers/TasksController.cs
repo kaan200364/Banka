@@ -79,5 +79,21 @@ public async Task<ActionResult<TaskDto>> Update(Guid id, UpdateTaskDto dto)
         return BadRequest(new { message = ex.Message });
     }
 }
+
+[HttpDelete("{id}")]
+[Authorize(Roles = "Administrator,Manager")]
+public async Task<IActionResult> Delete(Guid id)
+{
+    try
+    {
+        var success = await _taskService.DeleteAsync(id);
+        if (!success) return NotFound();
+        return NoContent();
+    }
+    catch (InvalidOperationException ex)
+    {
+        return BadRequest(new { message = ex.Message });
+    }
+}
     }
 }

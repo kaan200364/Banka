@@ -54,5 +54,21 @@ public async Task<ActionResult<ProjectDto>> Update(Guid id, UpdateProjectDto dto
         return BadRequest(new { message = ex.Message });
     }
 }
+
+[HttpDelete("{id}")]
+[Authorize(Roles = "Administrator,Manager")]
+public async Task<IActionResult> Deactivate(Guid id)
+{
+    try
+    {
+        var success = await _projectService.DeactivateAsync(id);
+        if (!success) return NotFound();
+        return NoContent();
+    }
+    catch (InvalidOperationException ex)
+    {
+        return BadRequest(new { message = ex.Message });
+    }
+}
     }
 }

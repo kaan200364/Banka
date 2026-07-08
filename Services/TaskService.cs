@@ -136,6 +136,21 @@ public async Task<TaskDto?> UpdateAsync(Guid id, UpdateTaskDto dto)
     return MapToDto(task);
 }
 
+
+public async Task<bool> DeleteAsync(Guid id)
+{
+    var task = await _context.ProjectTasks.FindAsync(id);
+    if (task == null) return false;
+
+    var hasSubtasks = await _context.ProjectTasks.AnyAsync(t => t.ParentTaskID == id);
+    if (hasSubtasks)
+        throw new InvalidOperationException(
+            "Bu görevin alt görevleri var. Önce alt görevleri silin veya başka bir göreve taşıyın.");
+
+    _context.ProjectTasks.Remove(task);
+    await _context.SaveChangesAsync();
+    return true;
+}
         
     }
 }

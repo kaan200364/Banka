@@ -78,6 +78,24 @@ public async Task<PagedResultDto<ProjectDto>> GetAllAsync(string? search, int pa
         PageSize = pageSize
     };
 }
+
+public async Task<bool> DeactivateAsync(Guid id)
+{
+    var project = await _context.Projects.FindAsync(id);
+    if (project == null) return false;
+
+    var hasActiveTasks = await _context.ProjectTasks
+        .AnyAsync(t => t.ProjectID == id && t.Status != "Completed");
+
+    if (hasActiveTasks)
+        throw new InvalidOperationException(
+            "Bu projenin tamamlanmamış görevleri var. Önce tüm görevleri tamamlayın veya silin.");
+
+    project.Status = "Cancelled";
+    project.UpdatedAt = DateTime.UtcNow;
+    await _context.SaveChangesAsync();
+    return true;
+}
         private static ProjectDto MapToDto(Project p)
         {
             return new ProjectDto
