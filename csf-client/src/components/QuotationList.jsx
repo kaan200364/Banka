@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { getQuotations, approveQuotation, rejectQuotation } from "../api/quotationApi";
+import { getQuotations, approveQuotation, rejectQuotation, downloadQuotationPdf } from "../api/quotationApi";
 
 const STATUS_LABELS = {
     Draft: "Taslak",
@@ -65,6 +65,14 @@ function QuotationList({ userRole, onEdit, refreshTrigger }) {
         }
     }
 
+    async function handleDownloadPdf(id, quotationNumber) {
+        try {
+            await downloadQuotationPdf(id, quotationNumber);
+        } catch (err) {
+            alert(err.message || "PDF indirilemedi.");
+        }
+    }
+
     return (
         <div className="customer-list">
             <div className="search-bar">
@@ -111,6 +119,7 @@ function QuotationList({ userRole, onEdit, refreshTrigger }) {
                                             {canApprove && q.status === "Draft" && (
                                                 <button className="danger" onClick={() => handleReject(q.quotationID)}>Reddet</button>
                                             )}
+                                            <button onClick={() => handleDownloadPdf(q.quotationID, q.quotationNumber)}>PDF</button>
                                         </td>
                                     </tr>
                                 ))

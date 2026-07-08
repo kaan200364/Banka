@@ -70,3 +70,22 @@ export async function rejectQuotation(id) {
     }
     return response.json();
 }
+
+export async function downloadQuotationPdf(id, quotationNumber) {
+    const token = localStorage.getItem("token");
+    const response = await fetch(`${BASE_URL}/${id}/pdf`, {
+        headers: { Authorization: `Bearer ${token}` },
+    });
+
+    if (!response.ok) throw new Error("PDF oluşturulamadı");
+
+    const blob = await response.blob();
+    const url = window.URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    link.href = url;
+    link.download = `${quotationNumber}.pdf`;
+    document.body.appendChild(link);
+    link.click();
+    link.remove();
+    window.URL.revokeObjectURL(url);
+}

@@ -18,6 +18,8 @@ import TaskList from "./components/TaskList";
 import ReportsDashboard from "./components/ReportsDashboard";
 import UserForm from "./components/UserForm";
 import UserList from "./components/UserList";
+import SupplierForm from "./components/SupplierForm";
+import SupplierList from "./components/SupplierList";
 
 function App() {
   const [user, setUser] = useState(() => {
@@ -44,6 +46,10 @@ function App() {
   const [editingBankAccount, setEditingBankAccount] = useState(null);
   const [editingQuotation, setEditingQuotation] = useState(null);
   const [editingProject, setEditingProject] = useState(null);
+  const [customerSubTab, setCustomerSubTab] = useState("customers");
+  const [editingSupplier, setEditingSupplier] = useState(null);
+  const [supplierRefresh, setSupplierRefresh] = useState(0);
+  const [editingTask, setEditingTask] = useState(null);
 
   function handleLoginSuccess(result) {
     setUser({
@@ -83,10 +89,15 @@ function App() {
     setProjectRefresh((prev) => prev + 1);
   }
   function handleTaskSaved() {
+    setEditingTask(null);
     setTaskRefresh((prev) => prev + 1);
   }
   function handleUserSaved() {
     setUserRefresh((prev) => prev + 1);
+  }
+  function handleSupplierSaved() {
+    setEditingSupplier(null);
+    setSupplierRefresh((prev) => prev + 1);
   }
 
   if (!user) {
@@ -186,12 +197,42 @@ function App() {
       <main className="app-main">
         {activeTab === "customers" && (
           <>
-            <CustomerForm
-              editingCustomer={editingCustomer}
-              onSaved={handleCustomerSaved}
-              onCancel={() => setEditingCustomer(null)}
-            />
-            <CustomerList onEdit={setEditingCustomer} refreshTrigger={customerRefresh} />
+            <div className="sub-tab-nav">
+              <button
+                className={customerSubTab === "customers" ? "sub-tab active" : "sub-tab"}
+                onClick={() => setCustomerSubTab("customers")}
+              >
+                Cari
+              </button>
+              <button
+                className={customerSubTab === "suppliers" ? "sub-tab active" : "sub-tab"}
+                onClick={() => setCustomerSubTab("suppliers")}
+              >
+                Tedarikçi
+              </button>
+            </div>
+
+            {customerSubTab === "customers" && (
+              <>
+                <CustomerForm
+                  editingCustomer={editingCustomer}
+                  onSaved={handleCustomerSaved}
+                  onCancel={() => setEditingCustomer(null)}
+                />
+                <CustomerList onEdit={setEditingCustomer} refreshTrigger={customerRefresh} />
+              </>
+            )}
+
+            {customerSubTab === "suppliers" && (
+              <>
+                <SupplierForm
+                  editingSupplier={editingSupplier}
+                  onSaved={handleSupplierSaved}
+                  onCancel={() => setEditingSupplier(null)}
+                />
+                <SupplierList onEdit={setEditingSupplier} refreshTrigger={supplierRefresh} />
+              </>
+            )}
           </>
         )}
 
@@ -244,8 +285,14 @@ function App() {
 
         {activeTab === "tasks" && (
           <>
-            {canCreateTask && <TaskForm onSaved={handleTaskSaved} />}
-            <TaskList currentUser={user} refreshTrigger={taskRefresh} />
+            {canCreateTask && (
+              <TaskForm
+                editingTask={editingTask}
+                onSaved={handleTaskSaved}
+                onCancel={() => setEditingTask(null)}
+              />
+            )}
+            <TaskList currentUser={user} onEdit={setEditingTask} refreshTrigger={taskRefresh} />
           </>
         )}
 

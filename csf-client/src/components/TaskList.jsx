@@ -4,7 +4,7 @@ import { getTasks, updateTaskStatus } from "../api/taskApi";
 const STATUS_LABELS = { Pending: "Bekliyor", InProgress: "Devam Ediyor", Completed: "Tamamlandı" };
 const PRIORITY_LABELS = { Low: "Düşük", Medium: "Orta", High: "Yüksek" };
 
-function TaskList({ currentUser, refreshTrigger }) {
+function TaskList({ currentUser, onEdit, refreshTrigger }) {
     const [tasks, setTasks] = useState([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
@@ -75,15 +75,19 @@ function TaskList({ currentUser, refreshTrigger }) {
                                 <th>Öncelik</th>
                                 <th>Son Tarih</th>
                                 <th>Durum</th>
+                                <th>İşlemler</th>
                             </tr>
                         </thead>
                         <tbody>
                             {tasks.length === 0 ? (
-                                <tr><td colSpan="4" className="empty-state">Henüz kayıtlı görev yok.</td></tr>
+                                <tr><td colSpan="5" className="empty-state">Henüz kayıtlı görev yok.</td></tr>
                             ) : (
                                 tasks.map((t) => (
                                     <tr key={t.taskID}>
-                                        <td>{t.title}</td>
+                                        <td>
+                                            {t.parentTaskID && <span className="subtask-indent">↳ </span>}
+                                            {t.title}
+                                        </td>
                                         <td>{PRIORITY_LABELS[t.priority]}</td>
                                         <td>{t.dueDate ? new Date(t.dueDate).toLocaleDateString("tr-TR") : "-"}</td>
                                         <td>
@@ -96,6 +100,11 @@ function TaskList({ currentUser, refreshTrigger }) {
                                                 <option value="InProgress">Devam Ediyor</option>
                                                 <option value="Completed">Tamamlandı</option>
                                             </select>
+                                        </td>
+                                        <td className="actions">
+                                            {isManagerOrAdmin && (
+                                                <button onClick={() => onEdit(t)}>Düzenle</button>
+                                            )}
                                         </td>
                                     </tr>
                                 ))

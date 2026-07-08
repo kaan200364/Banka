@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { getFinancialSummary, getProjectSummary, getQuotationSummary } from "../api/reportApi";
+import { getFinancialSummary, getProjectSummary, getQuotationSummary, downloadReportPdf, downloadReportExcel } from "../api/reportApi";
 
 function ReportsDashboard() {
     const [financial, setFinancial] = useState(null);
@@ -42,6 +42,22 @@ function ReportsDashboard() {
         setToDate("");
     }
 
+    async function handleDownloadPdf() {
+        try {
+            await downloadReportPdf(fromDate, toDate);
+        } catch (err) {
+            alert("PDF indirilemedi.");
+        }
+    }
+
+    async function handleDownloadExcel() {
+        try {
+            await downloadReportExcel(fromDate, toDate);
+        } catch (err) {
+            alert("Excel indirilemedi.");
+        }
+    }
+
     if (loading) return <p className="status-text">Yükleniyor...</p>;
     if (error) return <p className="status-text error">{error}</p>;
 
@@ -63,6 +79,8 @@ function ReportsDashboard() {
                         Filtreyi Temizle
                     </button>
                 )}
+                <button type="button" onClick={handleDownloadPdf}>PDF İndir</button>
+                <button type="button" onClick={handleDownloadExcel}>Excel İndir</button>
             </div>
 
             <div className="stat-cards">

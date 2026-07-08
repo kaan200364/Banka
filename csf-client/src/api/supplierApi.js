@@ -6,9 +6,9 @@ function getAuthHeaders() {
     };
 }
 
-const BASE_URL = "http://localhost:5144/api/v1/tasks";
+const BASE_URL = "http://localhost:5144/api/v1/suppliers";
 
-export async function getTasks(search = "", page = 1, pageSize = 10) {
+export async function getSuppliers(search = "", page = 1, pageSize = 10) {
     const params = new URLSearchParams();
     if (search) params.append("search", search);
     params.append("page", page);
@@ -17,10 +17,11 @@ export async function getTasks(search = "", page = 1, pageSize = 10) {
     const response = await fetch(`${BASE_URL}?${params.toString()}`, {
         headers: getAuthHeaders(),
     });
-    if (!response.ok) throw new Error("Görevler yüklenemedi");
+    if (!response.ok) throw new Error("Tedarikçiler yüklenemedi");
     return response.json();
 }
-export async function createTask(data) {
+
+export async function createSupplier(data) {
     const response = await fetch(BASE_URL, {
         method: "POST",
         headers: getAuthHeaders(),
@@ -33,20 +34,7 @@ export async function createTask(data) {
     return response.json();
 }
 
-export async function updateTaskStatus(id, status) {
-    const response = await fetch(`${BASE_URL}/${id}/status`, {
-        method: "PATCH",
-        headers: getAuthHeaders(),
-        body: JSON.stringify({ status }),
-    });
-    if (!response.ok) {
-        const errorData = await response.json();
-        throw errorData;
-    }
-    return response.json();
-}
-
-export async function updateTask(id, data) {
+export async function updateSupplier(id, data) {
     const response = await fetch(`${BASE_URL}/${id}`, {
         method: "PUT",
         headers: getAuthHeaders(),
@@ -57,4 +45,12 @@ export async function updateTask(id, data) {
         throw errorData;
     }
     return response.json();
+}
+
+export async function deactivateSupplier(id) {
+    const response = await fetch(`${BASE_URL}/${id}`, {
+        method: "DELETE",
+        headers: getAuthHeaders(),
+    });
+    if (!response.ok) throw new Error("İşlem başarısız oldu");
 }

@@ -53,3 +53,51 @@ export async function createExpense(data) {
     }
     return response.json();
 }
+
+export async function updateIncome(id, data) {
+    const response = await fetch(`${INCOME_URL}/${id}`, {
+        method: "PUT",
+        headers: getAuthHeaders(),
+        body: JSON.stringify(data),
+    });
+    if (!response.ok) {
+        const errorData = await response.json();
+        throw errorData;
+    }
+    return response.json();
+}
+
+export async function deleteIncome(id) {
+    const response = await fetch(`${INCOME_URL}/${id}`, {
+        method: "DELETE",
+        headers: getAuthHeaders(),
+    });
+    if (!response.ok) {
+        const errorData = await response.json();
+        throw errorData;
+    }
+}
+
+export async function updateExpense(id, data) {
+    const response = await fetch(`${EXPENSE_URL}/${id}`, {
+        method: "PUT",
+        headers: getAuthHeaders(),
+        body: JSON.stringify(data),
+    });
+    if (!response.ok) {
+        const errorData = await response.json();
+        throw errorData;
+    }
+    return response.json();
+}
+
+export async function deleteExpense(id) {
+    const response = await fetch(`${EXPENSE_URL}/${id}`, {
+        method: "DELETE",
+        headers: getAuthHeaders(),
+    });
+    if (!response.ok) {
+        const errorData = await response.json();
+        throw errorData;
+    }
+}

@@ -30,3 +30,42 @@ export async function getQuotationSummary() {
     if (!response.ok) throw new Error("Teklif özeti yüklenemedi");
     return response.json();
 }
+
+async function downloadFile(url, filename) {
+    const token = localStorage.getItem("token");
+    const response = await fetch(url, {
+        headers: { Authorization: `Bearer ${token}` },
+    });
+
+    if (!response.ok) throw new Error("Dosya indirilemedi");
+
+    const blob = await response.blob();
+    const objectUrl = window.URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    link.href = objectUrl;
+    link.download = filename;
+    document.body.appendChild(link);
+    link.click();
+    link.remove();
+    window.URL.revokeObjectURL(objectUrl);
+}
+
+export async function downloadReportPdf(from = "", to = "") {
+    let url = `${BASE_URL}/export/pdf`;
+    const params = [];
+    if (from) params.push(`from=${from}`);
+    if (to) params.push(`to=${to}`);
+    if (params.length) url += `?${params.join("&")}`;
+
+    await downloadFile(url, "rapor.pdf");
+}
+
+export async function downloadReportExcel(from = "", to = "") {
+    let url = `${BASE_URL}/export/excel`;
+    const params = [];
+    if (from) params.push(`from=${from}`);
+    if (to) params.push(`to=${to}`);
+    if (params.length) url += `?${params.join("&")}`;
+
+    await downloadFile(url, "rapor.xlsx");
+}

@@ -1,13 +1,15 @@
 import { useState, useEffect } from "react";
 import { getProjects, getAllUsers } from "../api/projectApi";
-import { createTask } from "../api/taskApi";
+import { createTask, getTasks, updateTask } from "../api/taskApi";
 
-function TaskForm({ onSaved }) {
+function TaskForm({ editingTask, onSaved, onCancel }) {
     const [projects, setProjects] = useState([]);
     const [users, setUsers] = useState([]);
+    const [existingTasks, setExistingTasks] = useState([]);
     const [formData, setFormData] = useState({
         projectID: "",
         assignedUserID: "",
+        parentTaskID: "",
         title: "",
         priority: "Medium",
         dueDate: "",
@@ -16,13 +18,37 @@ function TaskForm({ onSaved }) {
     const [saving, setSaving] = useState(false);
 
     useEffect(() => {
-        Promise.all([getProjects("", 1, 100), getAllUsers()])
-            .then(([projectsResult, userList]) => {
+        Promise.all([getProjects("", 1, 100), getAllUsers(), getTasks("", 1, 100)])
+            .then(([projectsResult, userList, tasksResult]) => {
                 setProjects(projectsResult.items.filter((p) => p.status === "Active"));
                 setUsers(userList);
+                setExistingTasks(tasksResult.items.filter((t) => !t.parentTaskID));
             })
             .catch(console.error);
     }, []);
+
+    useEffect(() => {
+        if (editingTask) {
+            setFormData({
+                projectID: editingTask.projectID,
+                assignedUserID: editingTask.assignedUserID,
+                parentTaskID: editingTask.parentTaskID || "",
+                title: editingTask.title,
+                priority: editingTask.priority,
+                dueDate: editingTask.dueDate ? editingTask.dueDate.split("T")[0] : "",
+            });
+        } else {
+            setFormData({
+                projectID: "",
+                assignedUserID: "",
+                parentTaskID: "",
+                title: "",
+                priority: "Medium",
+                dueDate: "",
+            });
+        }
+        setErrorMessage(null);
+    }, [editingTask]);
 
     function handleChange(e) {
         const { name, value } = e.target;
@@ -35,11 +61,31 @@ function TaskForm({ onSaved }) {
         setErrorMessage(null);
 
         try {
-            await createTask({ ...formData, dueDate: formData.dueDate || null });
-            setFormData({ projectID: "", assignedUserID: "", title: "", priority: "Medium", dueDate: "" });
+            if (editingTask) {
+                await updateTask(editingTask.taskID, {
+                    title: formData.title,
+                    assignedUserID: formData.assignedUserID,
+                    priority: formData.priority,
+                    dueDate: formData.dueDate || null,
+                });
+            } else {
+                await createTask({
+                    ...formData,
+                    parentTaskID: formData.parentTaskID || null,
+                    dueDate: formData.dueDate || null,
+                });
+            }
+            setFormData({
+                projectID: "",
+                assignedUserID: "",
+                parentTaskID: "",
+                title: "",
+                priority: "Medium",
+                dueDate: "",
+            });
             onSaved();
         } catch (err) {
-            setErrorMessage(err.message || "Görev oluşturulamadı.");
+            setErrorMessage(err.message || "İşlem sırasında bir hata oluştu.");
         } finally {
             setSaving(false);
         }
@@ -47,17 +93,31 @@ function TaskForm({ onSaved }) {
 
     return (
         <form className="customer-form" onSubmit={handleSubmit}>
-            <h2>Yeni Görev Oluştur</h2>
+            <h2>{editingTask ? "Görevi Düzenle" : "Yeni Görev Oluştur"}</h2>
 
             <div className="form-group">
                 <label>Proje *</label>
-                <select name="projectID" value={formData.projectID} onChange={handleChange} required>
+                <select name="projectID" value={formData.projectID} onChange={handleChange} required disabled={!!editingTask}>
                     <option value="">Seçiniz...</option>
                     {projects.map((p) => (
                         <option key={p.projectID} value={p.projectID}>{p.projectName}</option>
                     ))}
                 </select>
             </div>
+
+            {!editingTask && (
+                <div className="form-group">
+                    <label>Ana Görev (opsiyonel — alt görev oluşturmak için seçin)</label>
+                    <select name="parentTaskID" value={formData.parentTaskID} onChange={handleChange}>
+                        <option value="">Yok (bağımsız görev)</option>
+                        {existingTasks
+                            .filter((t) => t.projectID === formData.projectID)
+                            .map((t) => (
+                                <option key={t.taskID} value={t.taskID}>{t.title}</option>
+                            ))}
+                    </select>
+                </div>
+            )}
 
             <div className="form-group">
                 <label>Atanacak Kişi *</label>
@@ -91,7 +151,10 @@ function TaskForm({ onSaved }) {
             {errorMessage && <p className="field-error finance-error">{errorMessage}</p>}
 
             <div className="form-actions">
-                <button type="submit" disabled={saving}>{saving ? "Kaydediliyor..." : "Kaydet"}</button>
+                <button type="submit" disabled={saving}>{saving ? "Kaydediliyor..." : editingTask ? "Güncelle" : "Kaydet"}</button>
+                {editingTask && (
+                    <button type="button" className="secondary" onClick={onCancel}>Vazgeç</button>
+                )}
             </div>
         </form>
     );
