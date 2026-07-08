@@ -100,5 +100,73 @@ namespace CSF.API.Services
         PendingTasksCount = pendingTasksCount
     };
 }
+
+public async Task<List<CustomerReportItemDto>> GetCustomerReportAsync()
+{
+    var customers = await _context.Customers.Where(c => c.Status == "Active").ToListAsync();
+    var result = new List<CustomerReportItemDto>();
+
+    foreach (var customer in customers)
+    {
+        var incomes = await _context.Incomes
+            .Where(i => i.CustomerID == customer.CustomerID)
+            .ToListAsync();
+
+        result.Add(new CustomerReportItemDto
+        {
+            CustomerID = customer.CustomerID,
+            CompanyName = customer.CompanyName,
+            TotalIncomeAmount = incomes.Sum(i => i.Amount),
+            TransactionCount = incomes.Count
+        });
+    }
+
+    return result.OrderByDescending(r => r.TotalIncomeAmount).ToList();
+}
+
+public async Task<List<SupplierReportItemDto>> GetSupplierReportAsync()
+{
+    var suppliers = await _context.Suppliers.Where(s => s.Status == "Active").ToListAsync();
+    var result = new List<SupplierReportItemDto>();
+
+    foreach (var supplier in suppliers)
+    {
+        var expenses = await _context.Expenses
+            .Where(e => e.SupplierID == supplier.SupplierID)
+            .ToListAsync();
+
+        result.Add(new SupplierReportItemDto
+        {
+            SupplierID = supplier.SupplierID,
+            CompanyName = supplier.CompanyName,
+            TotalExpenseAmount = expenses.Sum(e => e.Amount),
+            TransactionCount = expenses.Count
+        });
+    }
+
+    return result.OrderByDescending(r => r.TotalExpenseAmount).ToList();
+}
+
+public async Task<List<BankReportItemDto>> GetBankReportAsync()
+{
+    var accounts = await _context.BankAccounts.Where(b => b.Status == "Active").ToListAsync();
+    var result = new List<BankReportItemDto>();
+
+    foreach (var account in accounts)
+    {
+        var transactionCount = await _context.BankTransactions
+            .CountAsync(t => t.BankAccountID == account.BankAccountID);
+
+        result.Add(new BankReportItemDto
+        {
+            BankAccountID = account.BankAccountID,
+            BankName = account.BankName,
+            Balance = account.Balance,
+            TransactionCount = transactionCount
+        });
+    }
+
+    return result.OrderByDescending(r => r.Balance).ToList();
+}
     }
 }

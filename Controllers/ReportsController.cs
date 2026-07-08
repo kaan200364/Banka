@@ -65,5 +65,23 @@ public async Task<ActionResult<DashboardSummaryDto>> GetDashboardSummary()
 {
     return Ok(await _reportService.GetDashboardSummaryAsync());
 }
+
+[HttpGet("customer-summary")]
+public async Task<ActionResult<List<CustomerReportItemDto>>> GetCustomerReport()
+{
+    return Ok(await _reportService.GetCustomerReportAsync());
+}
+
+[HttpGet("supplier-summary")]
+public async Task<ActionResult<List<SupplierReportItemDto>>> GetSupplierReport()
+{
+    return Ok(await _reportService.GetSupplierReportAsync());
+}
+
+[HttpGet("bank-summary")]
+public async Task<ActionResult<List<BankReportItemDto>>> GetBankReport()
+{
+    return Ok(await _reportService.GetBankReportAsync());
+}
     }
 }

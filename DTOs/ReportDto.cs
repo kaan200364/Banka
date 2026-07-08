@@ -35,4 +35,29 @@ namespace CSF.API.DTOs
     public int ActiveProjectsCount { get; set; }
     public int PendingTasksCount { get; set; }
 }
+
+
+public class CustomerReportItemDto
+{
+    public Guid CustomerID { get; set; }
+    public string CompanyName { get; set; } = string.Empty;
+    public decimal TotalIncomeAmount { get; set; }
+    public int TransactionCount { get; set; }
+}
+
+public class SupplierReportItemDto
+{
+    public Guid SupplierID { get; set; }
+    public string CompanyName { get; set; } = string.Empty;
+    public decimal TotalExpenseAmount { get; set; }
+    public int TransactionCount { get; set; }
+}
+
+public class BankReportItemDto
+{
+    public Guid BankAccountID { get; set; }
+    public string BankName { get; set; } = string.Empty;
+    public decimal Balance { get; set; }
+    public int TransactionCount { get; set; }
+}
 }
