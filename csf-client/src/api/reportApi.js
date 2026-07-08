@@ -69,3 +69,27 @@ export async function downloadReportExcel(from = "", to = "") {
 
     await downloadFile(url, "rapor.xlsx");
 }
+
+export async function getDashboardSummary() {
+    const response = await fetch(`${BASE_URL}/dashboard-summary`, { headers: getAuthHeaders() });
+    if (!response.ok) throw new Error("Genel özet yüklenemedi");
+    return response.json();
+}
+
+export async function getCustomerReport() {
+    const response = await fetch(`${BASE_URL}/customer-summary`, { headers: getAuthHeaders() });
+    if (!response.ok) throw new Error("Cari raporu yüklenemedi");
+    return response.json();
+}
+
+export async function getSupplierReport() {
+    const response = await fetch(`${BASE_URL}/supplier-summary`, { headers: getAuthHeaders() });
+    if (!response.ok) throw new Error("Tedarikçi raporu yüklenemedi");
+    return response.json();
+}
+
+export async function getBankReport() {
+    const response = await fetch(`${BASE_URL}/bank-summary`, { headers: getAuthHeaders() });
+    if (!response.ok) throw new Error("Banka raporu yüklenemedi");
+    return response.json();
+}

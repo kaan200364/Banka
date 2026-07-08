@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { getTasks, updateTaskStatus } from "../api/taskApi";
+import { getTasks, updateTaskStatus, deleteTask } from "../api/taskApi";
 
 const STATUS_LABELS = { Pending: "Bekliyor", InProgress: "Devam Ediyor", Completed: "Tamamlandı" };
 const PRIORITY_LABELS = { Low: "Düşük", Medium: "Orta", High: "Yüksek" };
@@ -49,6 +49,18 @@ function TaskList({ currentUser, onEdit, refreshTrigger }) {
             load();
         } catch (err) {
             alert(err.message || "Durum güncellenemedi.");
+        }
+    }
+
+    async function handleDelete(id, title) {
+        const confirmed = window.confirm(`"${title}" görevini silmek istediğinize emin misiniz?`);
+        if (!confirmed) return;
+
+        try {
+            await deleteTask(id);
+            load();
+        } catch (err) {
+            alert(err.message || "Silme başarısız oldu.");
         }
     }
 
@@ -103,7 +115,10 @@ function TaskList({ currentUser, onEdit, refreshTrigger }) {
                                         </td>
                                         <td className="actions">
                                             {isManagerOrAdmin && (
-                                                <button onClick={() => onEdit(t)}>Düzenle</button>
+                                                <>
+                                                    <button onClick={() => onEdit(t)}>Düzenle</button>
+                                                    <button className="danger" onClick={() => handleDelete(t.taskID, t.title)}>Sil</button>
+                                                </>
                                             )}
                                         </td>
                                     </tr>

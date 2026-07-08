@@ -62,3 +62,14 @@ export async function updateProject(id, data) {
     }
     return response.json();
 }
+
+export async function deactivateProject(id) {
+    const response = await fetch(`${BASE_URL}/${id}`, {
+        method: "DELETE",
+        headers: getAuthHeaders(),
+    });
+    if (!response.ok) {
+        const errorData = await response.json();
+        throw errorData;
+    }
+}

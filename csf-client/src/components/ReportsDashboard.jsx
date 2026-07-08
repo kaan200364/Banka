@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { getFinancialSummary, getProjectSummary, getQuotationSummary, downloadReportPdf, downloadReportExcel } from "../api/reportApi";
+import { getFinancialSummary, getProjectSummary, getQuotationSummary, downloadReportPdf, downloadReportExcel, getDashboardSummary, getCustomerReport, getSupplierReport, getBankReport } from "../api/reportApi";
 
 function ReportsDashboard() {
     const [financial, setFinancial] = useState(null);
@@ -9,6 +9,10 @@ function ReportsDashboard() {
     const [error, setError] = useState(null);
     const [fromDate, setFromDate] = useState("");
     const [toDate, setToDate] = useState("");
+    const [dashboard, setDashboard] = useState(null);
+    const [customerReport, setCustomerReport] = useState([]);
+    const [supplierReport, setSupplierReport] = useState([]);
+    const [bankReport, setBankReport] = useState([]);
 
     useEffect(() => {
         loadAll();
@@ -17,14 +21,22 @@ function ReportsDashboard() {
     async function loadAll() {
         try {
             setLoading(true);
-            const [fin, proj, quo] = await Promise.all([
+            const [fin, proj, quo, dash, custRep, supRep, bankRep] = await Promise.all([
                 getFinancialSummary(fromDate, toDate),
                 getProjectSummary(),
                 getQuotationSummary(),
+                getDashboardSummary(),
+                getCustomerReport(),
+                getSupplierReport(),
+                getBankReport(),
             ]);
             setFinancial(fin);
             setProjects(proj);
             setQuotations(quo);
+            setDashboard(dash);
+            setCustomerReport(custRep);
+            setSupplierReport(supRep);
+            setBankReport(bankRep);
             setError(null);
         } catch (err) {
             setError("Raporlar yüklenirken bir hata oluştu.");
@@ -84,6 +96,33 @@ function ReportsDashboard() {
             </div>
 
             <div className="stat-cards">
+                <div className="stat-card stat-balance">
+                    <span className="stat-label">Toplam Cari</span>
+                    <span className="stat-value">{dashboard.totalCustomers}</span>
+                </div>
+
+                <div className="stat-card stat-balance">
+                    <span className="stat-label">Toplam Tedarikçi</span>
+                    <span className="stat-value">{dashboard.totalSuppliers}</span>
+                </div>
+
+                <div className="stat-card stat-income">
+                    <span className="stat-label">Toplam Banka Bakiyesi</span>
+                    <span className="stat-value">{formatMoney(dashboard.totalBankBalance)} TRY</span>
+                </div>
+
+                <div className="stat-card stat-quotation">
+                    <span className="stat-label">Aktif Proje</span>
+                    <span className="stat-value">{dashboard.activeProjectsCount}</span>
+                </div>
+
+                <div className="stat-card stat-expense">
+                    <span className="stat-label">Bekleyen Görev</span>
+                    <span className="stat-value">{dashboard.pendingTasksCount}</span>
+                </div>
+            </div>
+
+            <div className="stat-cards">
                 <div className="stat-card stat-income">
                     <span className="stat-label">Toplam Gelir</span>
                     <span className="stat-value">{formatMoney(financial.totalIncome)} TRY</span>
@@ -138,6 +177,84 @@ function ReportsDashboard() {
                                     </tr>
                                 );
                             })
+                        )}
+                    </tbody>
+                </table>
+            </div>
+
+            <h2 className="dashboard-title">Cari Bazlı Gelir Raporu</h2>
+            <div className="customer-list">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Şirket Adı</th>
+                            <th>Toplam Gelir</th>
+                            <th>İşlem Sayısı</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {customerReport.length === 0 ? (
+                            <tr><td colSpan="3" className="empty-state">Henüz veri yok.</td></tr>
+                        ) : (
+                            customerReport.map((c) => (
+                                <tr key={c.customerID}>
+                                    <td>{c.companyName}</td>
+                                    <td className="mono amount-income">{c.totalIncomeAmount.toLocaleString("tr-TR", { minimumFractionDigits: 2 })} TRY</td>
+                                    <td>{c.transactionCount}</td>
+                                </tr>
+                            ))
+                        )}
+                    </tbody>
+                </table>
+            </div>
+
+            <h2 className="dashboard-title">Tedarikçi Bazlı Gider Raporu</h2>
+            <div className="customer-list">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Şirket Adı</th>
+                            <th>Toplam Gider</th>
+                            <th>İşlem Sayısı</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {supplierReport.length === 0 ? (
+                            <tr><td colSpan="3" className="empty-state">Henüz veri yok.</td></tr>
+                        ) : (
+                            supplierReport.map((s) => (
+                                <tr key={s.supplierID}>
+                                    <td>{s.companyName}</td>
+                                    <td className="mono amount-expense">{s.totalExpenseAmount.toLocaleString("tr-TR", { minimumFractionDigits: 2 })} TRY</td>
+                                    <td>{s.transactionCount}</td>
+                                </tr>
+                            ))
+                        )}
+                    </tbody>
+                </table>
+            </div>
+
+            <h2 className="dashboard-title">Banka Hesapları Raporu</h2>
+            <div className="customer-list">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Banka Adı</th>
+                            <th>Bakiye</th>
+                            <th>İşlem Sayısı</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {bankReport.length === 0 ? (
+                            <tr><td colSpan="3" className="empty-state">Henüz veri yok.</td></tr>
+                        ) : (
+                            bankReport.map((b) => (
+                                <tr key={b.bankAccountID}>
+                                    <td>{b.bankName}</td>
+                                    <td className="mono">{b.balance.toLocaleString("tr-TR", { minimumFractionDigits: 2 })} TRY</td>
+                                    <td>{b.transactionCount}</td>
+                                </tr>
+                            ))
                         )}
                     </tbody>
                 </table>

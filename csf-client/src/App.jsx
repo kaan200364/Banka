@@ -20,6 +20,7 @@ import UserForm from "./components/UserForm";
 import UserList from "./components/UserList";
 import SupplierForm from "./components/SupplierForm";
 import SupplierList from "./components/SupplierList";
+import ProfilePage from "./components/ProfilePage";
 
 function App() {
   const [user, setUser] = useState(() => {
@@ -115,196 +116,304 @@ function App() {
 
   return (
     <div className="app">
-      <header className="app-header">
-        <h1>CSF Yönetim Sistemi</h1>
-        <div className="user-info">
-          <span>{user.fullName} ({user.role})</span>
+      <aside className="sidebar">
+        <div className="sidebar-brand">
+          <h1>CSF Yönetim</h1>
+          <span>Kurumsal Sistem</span>
+        </div>
+
+        <nav className="sidebar-nav">
+          <button
+            className={activeTab === "customers" ? "active" : ""}
+            onClick={() => setActiveTab("customers")}
+          >
+            <span className="nav-icon">◆</span> Cari / Tedarikçi
+          </button>
+
+          {canSeeBankModule && (
+            <button
+              className={activeTab === "bank" ? "active" : ""}
+              onClick={() => setActiveTab("bank")}
+            >
+              <span className="nav-icon">▤</span> Banka Hesapları
+            </button>
+          )}
+
+          {canSeeFinanceModule && (
+            <button
+              className={activeTab === "finance" ? "active" : ""}
+              onClick={() => setActiveTab("finance")}
+            >
+              <span className="nav-icon">↕</span> Gelir / Gider
+            </button>
+          )}
+
+          {canSeeQuotationModule && (
+            <button
+              className={activeTab === "quotations" ? "active" : ""}
+              onClick={() => setActiveTab("quotations")}
+            >
+              <span className="nav-icon">▢</span> Teklifler
+            </button>
+          )}
+
+          {canSeeContractModule && (
+            <button
+              className={activeTab === "contracts" ? "active" : ""}
+              onClick={() => setActiveTab("contracts")}
+            >
+              <span className="nav-icon">▦</span> Sözleşmeler
+            </button>
+          )}
+
+          {canSeeProjectModule && (
+            <button
+              className={activeTab === "projects" ? "active" : ""}
+              onClick={() => setActiveTab("projects")}
+            >
+              <span className="nav-icon">◫</span> Projeler
+            </button>
+          )}
+
+          <button
+            className={activeTab === "tasks" ? "active" : ""}
+            onClick={() => setActiveTab("tasks")}
+          >
+            <span className="nav-icon">☑</span> Görevler
+          </button>
+
+          {canSeeReportsModule && (
+            <button
+              className={activeTab === "reports" ? "active" : ""}
+              onClick={() => setActiveTab("reports")}
+            >
+              <span className="nav-icon">▲</span> Raporlar
+            </button>
+          )}
+
+          {canSeeUserModule && (
+            <button
+              className={activeTab === "users" ? "active" : ""}
+              onClick={() => setActiveTab("users")}
+            >
+              <span className="nav-icon">◉</span> Kullanıcılar
+            </button>
+          )}
+
+          <button
+            className={activeTab === "profile" ? "active" : ""}
+            onClick={() => setActiveTab("profile")}
+          >
+            <span className="nav-icon">●</span> Profilim
+          </button>
+        </nav>
+
+        <div className="sidebar-footer">
+          <div className="sidebar-user">
+            <strong>{user.fullName}</strong>
+            <span>{user.role}</span>
+          </div>
           <button className="secondary" onClick={handleLogout}>Çıkış Yap</button>
         </div>
-      </header>
+      </aside>
 
-      <nav className="tab-nav">
-        <button
-          className={activeTab === "customers" ? "tab active" : "tab"}
-          onClick={() => setActiveTab("customers")}
-        >
-          Cari / Tedarikçi
-        </button>
-        {canSeeBankModule && (
-          <button
-            className={activeTab === "bank" ? "tab active" : "tab"}
-            onClick={() => setActiveTab("bank")}
-          >
-            Banka Hesapları
-          </button>
-        )}
-        {canSeeFinanceModule && (
-          <button
-            className={activeTab === "finance" ? "tab active" : "tab"}
-            onClick={() => setActiveTab("finance")}
-          >
-            Gelir / Gider
-          </button>
-        )}
-        {canSeeQuotationModule && (
-          <button
-            className={activeTab === "quotations" ? "tab active" : "tab"}
-            onClick={() => setActiveTab("quotations")}
-          >
-            Teklifler
-          </button>
-        )}
-        {canSeeContractModule && (
-          <button
-            className={activeTab === "contracts" ? "tab active" : "tab"}
-            onClick={() => setActiveTab("contracts")}
-          >
-            Sözleşmeler
-          </button>
-        )}
-        {canSeeProjectModule && (
-          <button
-            className={activeTab === "projects" ? "tab active" : "tab"}
-            onClick={() => setActiveTab("projects")}
-          >
-            Projeler
-          </button>
-        )}
-        <button
-          className={activeTab === "tasks" ? "tab active" : "tab"}
-          onClick={() => setActiveTab("tasks")}
-        >
-          Görevler
-        </button>
-        {canSeeReportsModule && (
-          <button
-            className={activeTab === "reports" ? "tab active" : "tab"}
-            onClick={() => setActiveTab("reports")}
-          >
-            Raporlar
-          </button>
-        )}
-        {canSeeUserModule && (
-          <button
-            className={activeTab === "users" ? "tab active" : "tab"}
-            onClick={() => setActiveTab("users")}
-          >
-            Kullanıcılar
-          </button>
-        )}
-      </nav>
-
-      <main className="app-main">
+      <div className="content-area">
         {activeTab === "customers" && (
           <>
-            <div className="sub-tab-nav">
-              <button
-                className={customerSubTab === "customers" ? "sub-tab active" : "sub-tab"}
-                onClick={() => setCustomerSubTab("customers")}
-              >
-                Cari
-              </button>
-              <button
-                className={customerSubTab === "suppliers" ? "sub-tab active" : "sub-tab"}
-                onClick={() => setCustomerSubTab("suppliers")}
-              >
-                Tedarikçi
-              </button>
+            <div className="page-header">
+              <div className="page-header-text">
+                <h2>Cari / Tedarikçi</h2>
+                <span className="page-subtitle">Müşteri ve tedarikçi kayıtlarınızı yönetin</span>
+              </div>
             </div>
+            <div className="app-main">
+              <div className="sub-tab-nav" style={{ width: "100%" }}>
+                <button
+                  className={customerSubTab === "customers" ? "sub-tab active" : "sub-tab"}
+                  onClick={() => setCustomerSubTab("customers")}
+                >
+                  Cari
+                </button>
+                <button
+                  className={customerSubTab === "suppliers" ? "sub-tab active" : "sub-tab"}
+                  onClick={() => setCustomerSubTab("suppliers")}
+                >
+                  Tedarikçi
+                </button>
+              </div>
 
-            {customerSubTab === "customers" && (
-              <>
-                <CustomerForm
-                  editingCustomer={editingCustomer}
-                  onSaved={handleCustomerSaved}
-                  onCancel={() => setEditingCustomer(null)}
-                />
-                <CustomerList onEdit={setEditingCustomer} refreshTrigger={customerRefresh} />
-              </>
-            )}
+              {customerSubTab === "customers" && (
+                <>
+                  <CustomerForm
+                    editingCustomer={editingCustomer}
+                    onSaved={handleCustomerSaved}
+                    onCancel={() => setEditingCustomer(null)}
+                  />
+                  <CustomerList onEdit={setEditingCustomer} refreshTrigger={customerRefresh} />
+                </>
+              )}
 
-            {customerSubTab === "suppliers" && (
-              <>
-                <SupplierForm
-                  editingSupplier={editingSupplier}
-                  onSaved={handleSupplierSaved}
-                  onCancel={() => setEditingSupplier(null)}
-                />
-                <SupplierList onEdit={setEditingSupplier} refreshTrigger={supplierRefresh} />
-              </>
-            )}
+              {customerSubTab === "suppliers" && (
+                <>
+                  <SupplierForm
+                    editingSupplier={editingSupplier}
+                    onSaved={handleSupplierSaved}
+                    onCancel={() => setEditingSupplier(null)}
+                  />
+                  <SupplierList onEdit={setEditingSupplier} refreshTrigger={supplierRefresh} />
+                </>
+              )}
+            </div>
           </>
         )}
 
         {activeTab === "bank" && canSeeBankModule && (
           <>
-            <BankAccountForm
-              editingAccount={editingBankAccount}
-              onSaved={handleBankAccountSaved}
-              onCancel={() => setEditingBankAccount(null)}
-            />
-            <BankAccountList onEdit={setEditingBankAccount} refreshTrigger={bankRefresh} />
+            <div className="page-header">
+              <div className="page-header-text">
+                <h2>Banka Hesapları</h2>
+                <span className="page-subtitle">Hesap bakiyelerinizi ve hareketlerinizi takip edin</span>
+              </div>
+            </div>
+            <div className="app-main">
+              <BankAccountForm
+                editingAccount={editingBankAccount}
+                onSaved={handleBankAccountSaved}
+                onCancel={() => setEditingBankAccount(null)}
+              />
+              <BankAccountList onEdit={setEditingBankAccount} refreshTrigger={bankRefresh} />
+            </div>
           </>
         )}
 
         {activeTab === "finance" && canSeeFinanceModule && (
           <>
-            <FinanceForm userRole={user.role} onSaved={handleFinanceSaved} />
-            <FinanceList refreshTrigger={financeRefresh} />
+            <div className="page-header">
+              <div className="page-header-text">
+                <h2>Gelir / Gider</h2>
+                <span className="page-subtitle">Nakit akışınızı kaydedin ve izleyin</span>
+              </div>
+            </div>
+            <div className="app-main">
+              <FinanceForm userRole={user.role} onSaved={handleFinanceSaved} />
+              <FinanceList refreshTrigger={financeRefresh} />
+            </div>
           </>
         )}
 
         {activeTab === "quotations" && canSeeQuotationModule && (
           <>
-            <QuotationForm
-              editingQuotation={editingQuotation}
-              onSaved={handleQuotationSaved}
-              onCancel={() => setEditingQuotation(null)}
-            />
-            <QuotationList userRole={user.role} onEdit={setEditingQuotation} refreshTrigger={quotationRefresh} />
+            <div className="page-header">
+              <div className="page-header-text">
+                <h2>Teklifler</h2>
+                <span className="page-subtitle">Müşterilerinize teklif oluşturun ve takip edin</span>
+              </div>
+            </div>
+            <div className="app-main">
+              <QuotationForm
+                editingQuotation={editingQuotation}
+                onSaved={handleQuotationSaved}
+                onCancel={() => setEditingQuotation(null)}
+              />
+              <QuotationList userRole={user.role} onEdit={setEditingQuotation} refreshTrigger={quotationRefresh} />
+            </div>
           </>
         )}
 
         {activeTab === "contracts" && canSeeContractModule && (
           <>
-            <ContractForm onSaved={handleContractSaved} />
-            <ContractList refreshTrigger={contractRefresh} />
+            <div className="page-header">
+              <div className="page-header-text">
+                <h2>Sözleşmeler</h2>
+                <span className="page-subtitle">Onaylı tekliflerden sözleşme oluşturun</span>
+              </div>
+            </div>
+            <div className="app-main">
+              <ContractForm onSaved={handleContractSaved} />
+              <ContractList refreshTrigger={contractRefresh} />
+            </div>
           </>
         )}
 
         {activeTab === "projects" && canSeeProjectModule && (
           <>
-            <ProjectForm
-              editingProject={editingProject}
-              onSaved={handleProjectSaved}
-              onCancel={() => setEditingProject(null)}
-            />
-            <ProjectList onEdit={setEditingProject} refreshTrigger={projectRefresh} />
+            <div className="page-header">
+              <div className="page-header-text">
+                <h2>Projeler</h2>
+                <span className="page-subtitle">Sözleşmelerinize bağlı projeleri yönetin</span>
+              </div>
+            </div>
+            <div className="app-main">
+              <ProjectForm
+                editingProject={editingProject}
+                onSaved={handleProjectSaved}
+                onCancel={() => setEditingProject(null)}
+              />
+              <ProjectList onEdit={setEditingProject} refreshTrigger={projectRefresh} />
+            </div>
           </>
         )}
 
         {activeTab === "tasks" && (
           <>
-            {canCreateTask && (
-              <TaskForm
-                editingTask={editingTask}
-                onSaved={handleTaskSaved}
-                onCancel={() => setEditingTask(null)}
-              />
-            )}
-            <TaskList currentUser={user} onEdit={setEditingTask} refreshTrigger={taskRefresh} />
+            <div className="page-header">
+              <div className="page-header-text">
+                <h2>Görevler</h2>
+                <span className="page-subtitle">Ekibinize görev atayın ve ilerlemeyi izleyin</span>
+              </div>
+            </div>
+            <div className="app-main">
+              {canCreateTask && (
+                <TaskForm
+                  editingTask={editingTask}
+                  onSaved={handleTaskSaved}
+                  onCancel={() => setEditingTask(null)}
+                />
+              )}
+              <TaskList currentUser={user} onEdit={setEditingTask} refreshTrigger={taskRefresh} />
+            </div>
           </>
         )}
 
-        {activeTab === "reports" && canSeeReportsModule && <ReportsDashboard />}
+        {activeTab === "reports" && canSeeReportsModule && (
+          <>
+            <div className="page-header">
+              <div className="page-header-text">
+                <h2>Raporlar</h2>
+                <span className="page-subtitle">İşletmenizin genel durumuna bakın</span>
+              </div>
+            </div>
+            <ReportsDashboard />
+          </>
+        )}
 
         {activeTab === "users" && canSeeUserModule && (
           <>
-            <UserForm onSaved={handleUserSaved} />
-            <UserList currentUserId={user.userID} refreshTrigger={userRefresh} />
+            <div className="page-header">
+              <div className="page-header-text">
+                <h2>Kullanıcılar</h2>
+                <span className="page-subtitle">Sistem kullanıcılarını ve rollerini yönetin</span>
+              </div>
+            </div>
+            <div className="app-main">
+              <UserForm onSaved={handleUserSaved} />
+              <UserList currentUserId={user.userID} refreshTrigger={userRefresh} />
+            </div>
           </>
         )}
-      </main>
+
+        {activeTab === "profile" && (
+          <>
+            <div className="page-header">
+              <div className="page-header-text">
+                <h2>Profilim</h2>
+                <span className="page-subtitle">Hesap bilgilerinizi güncelleyin</span>
+              </div>
+            </div>
+            <ProfilePage />
+          </>
+        )}
+      </div>
     </div>
   );
 }

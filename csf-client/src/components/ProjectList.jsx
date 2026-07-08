@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { getProjects } from "../api/projectApi";
+import { getProjects, deactivateProject } from "../api/projectApi";
 
 function ProjectList({ onEdit, refreshTrigger }) {
     const [projects, setProjects] = useState([]);
@@ -32,6 +32,18 @@ function ProjectList({ onEdit, refreshTrigger }) {
             setError("Projeler yüklenirken bir hata oluştu.");
         } finally {
             setLoading(false);
+        }
+    }
+
+    async function handleDeactivate(id, projectName) {
+        const confirmed = window.confirm(`"${projectName}" projesini iptal etmek istediğinize emin misiniz?`);
+        if (!confirmed) return;
+
+        try {
+            await deactivateProject(id);
+            load();
+        } catch (err) {
+            alert(err.message || "İşlem başarısız oldu.");
         }
     }
 
@@ -73,6 +85,9 @@ function ProjectList({ onEdit, refreshTrigger }) {
                                         <td><span className="badge status-approved">{p.status === "Active" ? "Aktif" : p.status}</span></td>
                                         <td className="actions">
                                             <button onClick={() => onEdit(p)}>Düzenle</button>
+                                            <button className="danger" onClick={() => handleDeactivate(p.projectID, p.projectName)}>
+                                                İptal Et
+                                            </button>
                                         </td>
                                     </tr>
                                 ))
