@@ -26,4 +26,13 @@ namespace CSF.API.DTOs
         public int RejectedCount { get; set; }
         public decimal TotalApprovedAmount { get; set; }
     }
+
+    public class DashboardSummaryDto
+{
+    public int TotalCustomers { get; set; }
+    public int TotalSuppliers { get; set; }
+    public decimal TotalBankBalance { get; set; }
+    public int ActiveProjectsCount { get; set; }
+    public int PendingTasksCount { get; set; }
+}
 }

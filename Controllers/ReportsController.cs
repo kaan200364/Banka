@@ -59,5 +59,11 @@ namespace CSF.API.Controllers
             var excelBytes = _exportService.GenerateExcel(financial, quotations, projects);
             return File(excelBytes, "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", "rapor.xlsx");
         }
+
+        [HttpGet("dashboard-summary")]
+public async Task<ActionResult<DashboardSummaryDto>> GetDashboardSummary()
+{
+    return Ok(await _reportService.GetDashboardSummaryAsync());
+}
     }
 }

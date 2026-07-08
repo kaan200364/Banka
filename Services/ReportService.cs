@@ -80,5 +80,25 @@ namespace CSF.API.Services
                 TotalApprovedAmount = quotations.Where(q => q.Status == "Approved").Sum(q => q.TotalAmount)
             };
         }
+
+        public async Task<DashboardSummaryDto> GetDashboardSummaryAsync()
+{
+    var totalCustomers = await _context.Customers.CountAsync(c => c.Status == "Active");
+    var totalSuppliers = await _context.Suppliers.CountAsync(s => s.Status == "Active");
+    var totalBankBalance = await _context.BankAccounts
+        .Where(b => b.Status == "Active")
+        .SumAsync(b => (decimal?)b.Balance) ?? 0;
+    var activeProjectsCount = await _context.Projects.CountAsync(p => p.Status == "Active");
+    var pendingTasksCount = await _context.ProjectTasks.CountAsync(t => t.Status == "Pending");
+
+    return new DashboardSummaryDto
+    {
+        TotalCustomers = totalCustomers,
+        TotalSuppliers = totalSuppliers,
+        TotalBankBalance = totalBankBalance,
+        ActiveProjectsCount = activeProjectsCount,
+        PendingTasksCount = pendingTasksCount
+    };
+}
     }
 }
