@@ -63,5 +63,21 @@ public async Task<ActionResult<PagedResultDto<TaskDto>>> GetAll(
                 return BadRequest(new { message = ex.Message });
             }
         }
+
+        [HttpPut("{id}")]
+[Authorize(Roles = "Administrator,Manager")]
+public async Task<ActionResult<TaskDto>> Update(Guid id, UpdateTaskDto dto)
+{
+    try
+    {
+        var updated = await _taskService.UpdateAsync(id, dto);
+        if (updated == null) return NotFound();
+        return Ok(updated);
+    }
+    catch (InvalidOperationException ex)
+    {
+        return BadRequest(new { message = ex.Message });
+    }
+}
     }
 }

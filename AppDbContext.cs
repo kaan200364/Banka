@@ -18,6 +18,9 @@ public DbSet<Quotation> Quotations => Set<Quotation>();
 public DbSet<Contract> Contracts => Set<Contract>();
 public DbSet<Project> Projects => Set<Project>();
 public DbSet<ProjectTask> ProjectTasks => Set<ProjectTask>();
+public DbSet<Supplier> Suppliers => Set<Supplier>();
+
+
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             base.OnModelCreating(modelBuilder);
@@ -98,6 +101,21 @@ modelBuilder.Entity<ProjectTask>(entity =>
     entity.Property(t => t.Title).IsRequired().HasMaxLength(200);
     entity.Property(t => t.Priority).HasMaxLength(20);
     entity.Property(t => t.Status).HasMaxLength(20);
+
+    entity.HasOne<ProjectTask>()
+          .WithMany()
+          .HasForeignKey(t => t.ParentTaskID)
+          .OnDelete(DeleteBehavior.Restrict);
+});
+
+modelBuilder.Entity<Supplier>(entity =>
+{
+    entity.HasKey(s => s.SupplierID);
+    entity.Property(s => s.CompanyName).IsRequired().HasMaxLength(200);
+    entity.Property(s => s.Email).HasMaxLength(150);
+    entity.Property(s => s.TaxNumber).HasMaxLength(50);
+    entity.Property(s => s.Status).HasMaxLength(20);
+    entity.HasIndex(s => s.TaxNumber);
 });
         }
     }

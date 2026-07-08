@@ -39,5 +39,22 @@ public async Task<ActionResult<PagedResultDto<ExpenseDto>>> GetAll(
                 return BadRequest(new { message = ex.Message });
             }
         }
+
+        [HttpPut("{id}")]
+public async Task<ActionResult<ExpenseDto>> Update(Guid id, UpdateExpenseDto dto)
+{
+    var updated = await _expenseService.UpdateAsync(id, dto);
+    if (updated == null) return NotFound();
+    return Ok(updated);
+}
+
+[HttpDelete("{id}")]
+[Authorize(Roles = "Administrator")]
+public async Task<IActionResult> Delete(Guid id)
+{
+    var success = await _expenseService.DeleteAsync(id);
+    if (!success) return NotFound();
+    return NoContent();
+}
     }
 }

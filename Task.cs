@@ -6,6 +6,7 @@ namespace CSF.API
 
         public Guid ProjectID { get; set; }
         public Guid AssignedUserID { get; set; }
+        public Guid? ParentTaskID { get; set; }
 
         public string Title { get; set; } = string.Empty;
         public string Priority { get; set; } = "Medium";

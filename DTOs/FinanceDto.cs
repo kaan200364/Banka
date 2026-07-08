@@ -46,6 +46,7 @@ namespace CSF.API.DTOs
         public string? Category { get; set; }
         public DateTime TransactionDate { get; set; }
         public string? Description { get; set; }
+        public Guid? BankTransactionID { get; set; }
     }
 
     public class ExpenseDto
@@ -58,5 +59,18 @@ namespace CSF.API.DTOs
         public string? Category { get; set; }
         public DateTime TransactionDate { get; set; }
         public string? Description { get; set; }
+        public Guid? BankTransactionID { get; set; }
     }
+
+    public class UpdateIncomeDto
+{
+    public string? Category { get; set; }
+    public string? Description { get; set; }
+}
+
+public class UpdateExpenseDto
+{
+    public string? Category { get; set; }
+    public string? Description { get; set; }
+}
 }

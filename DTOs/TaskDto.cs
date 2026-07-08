@@ -16,6 +16,7 @@ namespace CSF.API.DTOs
 
         public string Priority { get; set; } = "Medium";
         public DateTime? DueDate { get; set; }
+        public Guid? ParentTaskID { get; set; }
     }
 
     public class UpdateTaskStatusDto
@@ -33,5 +34,17 @@ namespace CSF.API.DTOs
         public string Priority { get; set; } = string.Empty;
         public DateTime? DueDate { get; set; }
         public string Status { get; set; } = string.Empty;
+        public Guid? ParentTaskID { get; set; }
     }
+
+    public class UpdateTaskDto
+{
+    [Required(ErrorMessage = "Başlık zorunludur.")]
+    [MaxLength(200)]
+    public string Title { get; set; } = string.Empty;
+
+    public Guid AssignedUserID { get; set; }
+    public string Priority { get; set; } = "Medium";
+    public DateTime? DueDate { get; set; }
+}
 }

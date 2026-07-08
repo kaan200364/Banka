@@ -15,5 +15,6 @@ namespace CSF.API
 
         public string? CreatedBy { get; set; }
         public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
+        public Guid? BankTransactionID { get; set; }
     }
 }

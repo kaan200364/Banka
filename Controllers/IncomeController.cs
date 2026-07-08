@@ -39,5 +39,22 @@ public async Task<ActionResult<PagedResultDto<IncomeDto>>> GetAll(
                 return BadRequest(new { message = ex.Message });
             }
         }
+
+        [HttpPut("{id}")]
+public async Task<ActionResult<IncomeDto>> Update(Guid id, UpdateIncomeDto dto)
+{
+    var updated = await _incomeService.UpdateAsync(id, dto);
+    if (updated == null) return NotFound();
+    return Ok(updated);
+}
+
+[HttpDelete("{id}")]
+[Authorize(Roles = "Administrator")]
+public async Task<IActionResult> Delete(Guid id)
+{
+    var success = await _incomeService.DeleteAsync(id);
+    if (!success) return NotFound();
+    return NoContent();
+}
     }
 }
