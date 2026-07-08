@@ -40,4 +40,24 @@ namespace CSF.API.DTOs
     public string FullName { get; set; } = string.Empty;
     public string Role { get; set; } = string.Empty;
 }
+
+public class UpdateProfileDto
+{
+    [Required(ErrorMessage = "Ad soyad zorunludur.")]
+    public string FullName { get; set; } = string.Empty;
+
+    [Required(ErrorMessage = "E-posta zorunludur.")]
+    [EmailAddress]
+    public string Email { get; set; } = string.Empty;
+}
+
+public class ChangePasswordDto
+{
+    [Required(ErrorMessage = "Mevcut şifre zorunludur.")]
+    public string CurrentPassword { get; set; } = string.Empty;
+
+    [Required(ErrorMessage = "Yeni şifre zorunludur.")]
+    [MinLength(6, ErrorMessage = "Yeni şifre en az 6 karakter olmalıdır.")]
+    public string NewPassword { get; set; } = string.Empty;
+}
 }

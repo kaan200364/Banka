@@ -93,5 +93,41 @@ namespace CSF.API.Services
 
             return new JwtSecurityTokenHandler().WriteToken(token);
         }
+
+        public async Task<UserDto> UpdateProfileAsync(Guid userId, UpdateProfileDto dto)
+{
+    var user = await _context.Users.FindAsync(userId);
+    if (user == null)
+        throw new InvalidOperationException("Kullanıcı bulunamadı.");
+
+    user.FullName = dto.FullName;
+    user.Email = dto.Email;
+
+    await _context.SaveChangesAsync();
+
+    return new UserDto
+    {
+        UserID = user.UserID,
+        Username = user.Username,
+        FullName = user.FullName,
+        Email = user.Email,
+        Role = user.Role,
+        Status = user.Status
+    };
+}
+
+public async Task ChangePasswordAsync(Guid userId, ChangePasswordDto dto)
+{
+    var user = await _context.Users.FindAsync(userId);
+    if (user == null)
+        throw new InvalidOperationException("Kullanıcı bulunamadı.");
+
+    bool currentPasswordValid = BCrypt.Net.BCrypt.Verify(dto.CurrentPassword, user.PasswordHash);
+    if (!currentPasswordValid)
+        throw new InvalidOperationException("Mevcut şifre yanlış.");
+
+    user.PasswordHash = BCrypt.Net.BCrypt.HashPassword(dto.NewPassword);
+    await _context.SaveChangesAsync();
+}
     }
 }
