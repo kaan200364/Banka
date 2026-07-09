@@ -137,5 +137,35 @@ public async Task<ActionResult<List<TaskAttachmentDto>>> GetAttachments(Guid id)
 {
     return Ok(await _taskService.GetAttachmentsAsync(id));
 }
+
+
+[HttpPost("{id}/dependencies")]
+[Authorize(Roles = "Administrator,Manager")]
+public async Task<ActionResult<TaskDependencyDto>> AddDependency(Guid id, AddDependencyDto dto)
+{
+    try
+    {
+        var dependency = await _taskService.AddDependencyAsync(id, dto);
+        return Ok(dependency);
+    }
+    catch (InvalidOperationException ex)
+    {
+        return BadRequest(new { message = ex.Message });
+    }
+}
+
+[HttpGet("{id}/dependencies")]
+public async Task<ActionResult<List<TaskDependencyDto>>> GetDependencies(Guid id)
+{
+    return Ok(await _taskService.GetDependenciesAsync(id));
+}
+
+[HttpDelete("dependencies/{dependencyId}")]
+[Authorize(Roles = "Administrator,Manager")]
+public async Task<IActionResult> RemoveDependency(Guid dependencyId)
+{
+    await _taskService.RemoveDependencyAsync(dependencyId);
+    return NoContent();
+}
     }
 }

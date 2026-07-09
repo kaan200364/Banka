@@ -3,7 +3,12 @@ import { getContracts } from "../api/contractApi";
 import { createProject, updateProject, getManagers } from "../api/projectApi";
 
 const EMPTY_FORM = { contractID: "", projectName: "", projectManagerID: "", startDate: "", endDate: "" };
-const STATUS_OPTIONS = ["Active", "Completed", "OnHold"];
+const STATUS_OPTIONS = [
+    { value: "Active", label: "Aktif" },
+    { value: "Completed", label: "Tamamlandı" },
+    { value: "OnHold", label: "Beklemede" },
+    { value: "Cancelled", label: "İptal Edildi" },
+];
 
 function ProjectForm({ editingProject, onSaved, onCancel }) {
     const [activeContracts, setActiveContracts] = useState([]);
@@ -118,7 +123,7 @@ function ProjectForm({ editingProject, onSaved, onCancel }) {
                     <label>Durum</label>
                     <select value={status} onChange={(e) => setStatus(e.target.value)}>
                         {STATUS_OPTIONS.map((s) => (
-                            <option key={s} value={s}>{s}</option>
+                            <option key={s.value} value={s.value}>{s.label}</option>
                         ))}
                     </select>
                 </div>

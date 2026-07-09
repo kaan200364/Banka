@@ -31,15 +31,22 @@ namespace CSF.API.Controllers
         }
 
         // POST /api/v1/auth/login
-        [HttpPost("login")]
-        public async Task<ActionResult<AuthResponseDto>> Login(LoginDto dto)
-        {
-            var result = await _authService.LoginAsync(dto);
-            if (result == null)
-                return Unauthorized(new { message = "Kullanıcı adı veya şifre hatalı." });
+    [HttpPost("login")]
+public async Task<ActionResult<AuthResponseDto>> Login(LoginDto dto)
+{
+    try
+    {
+        var result = await _authService.LoginAsync(dto);
+        if (result == null)
+            return Unauthorized(new { message = "Kullanıcı adı veya şifre hatalı." });
 
-            return Ok(result);
-        }
+        return Ok(result);
+    }
+    catch (InvalidOperationException ex)
+    {
+        return BadRequest(new { message = ex.Message });
+    }
+}
 
         [HttpGet("me")]
         [Authorize]

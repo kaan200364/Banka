@@ -8,6 +8,15 @@ const STATUS_LABELS = {
     Renewed: "Yenilendi",
 };
 
+function getContractBadgeClass(status) {
+    switch (status) {
+        case "Active": return "status-approved";
+        case "Terminated": return "status-rejected";
+        case "Renewed": return "status-expired";
+        default: return "status-draft";
+    }
+}
+
 function ContractList({ refreshTrigger }) {
     const [contracts, setContracts] = useState([]);
     const [loading, setLoading] = useState(true);
@@ -108,7 +117,7 @@ function ContractList({ refreshTrigger }) {
                                             <td className="mono">{c.contractNumber}</td>
                                             <td>{new Date(c.startDate).toLocaleDateString("tr-TR")}</td>
                                             <td>{new Date(c.endDate).toLocaleDateString("tr-TR")}</td>
-                                            <td><span className="badge status-approved">{STATUS_LABELS[c.status] || c.status}</span></td>
+                                            <td><span className={`badge ${getContractBadgeClass(c.status)}`}>{STATUS_LABELS[c.status] || c.status}</span></td>
                                             <td className="actions">
                                                 {c.status === "Active" && renewingId !== c.contractID && (
                                                     <>

@@ -47,4 +47,18 @@ namespace CSF.API.DTOs
     public string Priority { get; set; } = "Medium";
     public DateTime? DueDate { get; set; }
 }
+
+public class AddDependencyDto
+{
+    [Required(ErrorMessage = "Bağımlı olunan görev seçilmelidir.")]
+    public Guid DependsOnTaskID { get; set; }
+}
+
+public class TaskDependencyDto
+{
+    public Guid TaskDependencyID { get; set; }
+    public Guid DependsOnTaskID { get; set; }
+    public string DependsOnTaskTitle { get; set; } = string.Empty;
+    public string DependsOnTaskStatus { get; set; } = string.Empty;
+}
 }

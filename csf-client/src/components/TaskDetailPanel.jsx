@@ -1,11 +1,19 @@
 import { useState, useEffect } from "react";
-import { getTaskComments, addTaskComment, getTaskAttachments, uploadTaskAttachment } from "../api/taskApi";
+import {
+    getTaskComments, addTaskComment,
+    getTaskAttachments, uploadTaskAttachment,
+    getTaskDependencies, addTaskDependency, removeTaskDependency,
+    getTasks,
+} from "../api/taskApi";
 
-function TaskDetailPanel({ taskId }) {
+function TaskDetailPanel({ taskId, currentProjectId }) {
     const [comments, setComments] = useState([]);
     const [attachments, setAttachments] = useState([]);
     const [newComment, setNewComment] = useState("");
     const [uploading, setUploading] = useState(false);
+    const [dependencies, setDependencies] = useState([]);
+    const [availableTasks, setAvailableTasks] = useState([]);
+    const [selectedDependency, setSelectedDependency] = useState("");
 
     useEffect(() => {
         loadData();
@@ -13,12 +21,18 @@ function TaskDetailPanel({ taskId }) {
 
     async function loadData() {
         try {
-            const [commentsData, attachmentsData] = await Promise.all([
+            const [commentsData, attachmentsData, dependenciesData, allTasksResult] = await Promise.all([
                 getTaskComments(taskId),
                 getTaskAttachments(taskId),
+                getTaskDependencies(taskId),
+                getTasks("", 1, 100),
             ]);
             setComments(commentsData);
             setAttachments(attachmentsData);
+            setDependencies(dependenciesData);
+            setAvailableTasks(
+                allTasksResult.items.filter((t) => t.projectID === currentProjectId && t.taskID !== taskId)
+            );
         } catch (err) {
             console.error(err);
         }
@@ -50,6 +64,26 @@ function TaskDetailPanel({ taskId }) {
         } finally {
             setUploading(false);
             e.target.value = "";
+        }
+    }
+
+    async function handleAddDependency() {
+        if (!selectedDependency) return;
+        try {
+            await addTaskDependency(taskId, selectedDependency);
+            setSelectedDependency("");
+            loadData();
+        } catch (err) {
+            alert(err.message || "Bağımlılık eklenemedi.");
+        }
+    }
+
+    async function handleRemoveDependency(dependencyId) {
+        try {
+            await removeTaskDependency(dependencyId);
+            loadData();
+        } catch (err) {
+            alert(err.message || "Bağımlılık kaldırılamadı.");
         }
     }
 
@@ -99,6 +133,40 @@ function TaskDetailPanel({ taskId }) {
                     />
                     <button type="submit">Gönder</button>
                 </form>
+            </div>
+
+            <div className="task-detail-section">
+                <h4>Bağımlılıklar</h4>
+                {dependencies.length === 0 ? (
+                    <p className="empty-state">Bu görevin bağımlılığı yok.</p>
+                ) : (
+                    <ul className="attachment-list">
+                        {dependencies.map((d) => (
+                            <li key={d.taskDependencyID}>
+                                <span className={d.dependsOnTaskStatus === "Completed" ? "amount-income" : "amount-expense"}>
+                                    {d.dependsOnTaskStatus === "Completed" ? "✓" : "⏳"}
+                                </span>{" "}
+                                {d.dependsOnTaskTitle}
+                                <button
+                                    className="danger"
+                                    style={{ marginLeft: "0.5rem", padding: "0.2rem 0.5rem", fontSize: "0.7rem" }}
+                                    onClick={() => handleRemoveDependency(d.taskDependencyID)}
+                                >
+                                    Kaldır
+                                </button>
+                            </li>
+                        ))}
+                    </ul>
+                )}
+                <div style={{ display: "flex", gap: "0.5rem" }}>
+                    <select value={selectedDependency} onChange={(e) => setSelectedDependency(e.target.value)}>
+                        <option value="">Görev seçin...</option>
+                        {availableTasks.map((t) => (
+                            <option key={t.taskID} value={t.taskID}>{t.title}</option>
+                        ))}
+                    </select>
+                    <button onClick={handleAddDependency}>Ekle</button>
+                </div>
             </div>
         </div>
     );

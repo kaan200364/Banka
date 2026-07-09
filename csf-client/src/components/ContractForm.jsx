@@ -18,13 +18,12 @@ function ContractForm({ onSaved }) {
 
     async function loadApprovedQuotations() {
         try {
-            const all = await getQuotations();
-            setApprovedQuotations(all.filter((q) => q.status === "Approved"));
+            const result = await getQuotations("", 1, 100);
+            setApprovedQuotations(result.items.filter((q) => q.status === "Approved"));
         } catch (err) {
             console.error(err);
         }
     }
-
     function handleChange(e) {
         const { name, value } = e.target;
         setFormData((prev) => ({ ...prev, [name]: value }));

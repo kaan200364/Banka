@@ -22,6 +22,7 @@ public DbSet<Supplier> Suppliers => Set<Supplier>();
 public DbSet<TaskComment> TaskComments => Set<TaskComment>();
 public DbSet<TaskAttachment> TaskAttachments => Set<TaskAttachment>();
 public DbSet<ContractAttachment> ContractAttachments => Set<ContractAttachment>();
+public DbSet<TaskDependency> TaskDependencies => Set<TaskDependency>();
 
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
@@ -139,6 +140,21 @@ modelBuilder.Entity<ContractAttachment>(entity =>
     entity.HasKey(a => a.AttachmentID);
     entity.Property(a => a.FileName).IsRequired().HasMaxLength(255);
     entity.Property(a => a.FilePath).IsRequired();
+});
+
+modelBuilder.Entity<TaskDependency>(entity =>
+{
+    entity.HasKey(d => d.TaskDependencyID);
+
+    entity.HasOne<ProjectTask>()
+          .WithMany()
+          .HasForeignKey(d => d.TaskID)
+          .OnDelete(DeleteBehavior.Restrict);
+
+    entity.HasOne<ProjectTask>()
+          .WithMany()
+          .HasForeignKey(d => d.DependsOnTaskID)
+          .OnDelete(DeleteBehavior.Restrict);
 });
         }
     }

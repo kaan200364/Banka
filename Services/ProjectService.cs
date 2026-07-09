@@ -60,7 +60,7 @@ public async Task<PagedResultDto<ProjectDto>> GetAllAsync(string? search, int pa
     {
         query = query.Where(p => p.ProjectName.Contains(search));
     }
-
+    
     var totalCount = await query.CountAsync();
 
     var items = await query

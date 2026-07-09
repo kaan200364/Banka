@@ -48,27 +48,59 @@ namespace CSF.API.Services
                 UserID = user.UserID
             };
         }
+public async Task<AuthResponseDto?> LoginAsync(LoginDto dto)
+{
+    var user = await _context.Users.FirstOrDefaultAsync(u => u.Username == dto.Username);
+    if (user == null) return null;
 
-        public async Task<AuthResponseDto?> LoginAsync(LoginDto dto)
+    // KİLİT KONTROLÜ
+    if (user.LockoutEndTime.HasValue && user.LockoutEndTime.Value > DateTime.UtcNow)
+    {
+        var remainingMinutes = Math.Ceiling((user.LockoutEndTime.Value - DateTime.UtcNow).TotalMinutes);
+        throw new InvalidOperationException(
+            $"Hesabınız çok fazla başarısız giriş denemesi nedeniyle kilitlendi. Lütfen {remainingMinutes} dakika sonra tekrar deneyin.");
+    }
+
+    // Kilit süresi dolmuşsa, sayaçları sıfırla
+    if (user.LockoutEndTime.HasValue && user.LockoutEndTime.Value <= DateTime.UtcNow)
+    {
+        user.FailedLoginAttempts = 0;
+        user.LockoutEndTime = null;
+    }
+
+    bool passwordValid = BCrypt.Net.BCrypt.Verify(dto.Password, user.PasswordHash);
+
+    if (!passwordValid)
+    {
+        user.FailedLoginAttempts += 1;
+
+        if (user.FailedLoginAttempts >= 5)
         {
-            var user = await _context.Users.FirstOrDefaultAsync(u => u.Username == dto.Username);
-            if (user == null) return null;
-
-            bool passwordValid = BCrypt.Net.BCrypt.Verify(dto.Password, user.PasswordHash);
-            if (!passwordValid) return null;
-
-            var token = GenerateToken(user);
-
-            return new AuthResponseDto
-            {
-                Token = token,
-                Username = user.Username,
-                FullName = user.FullName,
-                Role = user.Role,
-                UserID = user.UserID
-            };
+            user.LockoutEndTime = DateTime.UtcNow.AddMinutes(15);
         }
 
+        await _context.SaveChangesAsync();
+        return null;
+    }
+
+    // Şifre doğru — başarısız deneme sayacını sıfırla
+    user.FailedLoginAttempts = 0;
+    user.LockoutEndTime = null;
+
+
+    await _context.SaveChangesAsync();
+
+    var token = GenerateToken(user);
+
+    return new AuthResponseDto
+    {
+        UserID = user.UserID,
+        Token = token,
+        Username = user.Username,
+        FullName = user.FullName,
+        Role = user.Role
+    };
+}
         private string GenerateToken(User user)
         {
             var claims = new List<Claim>

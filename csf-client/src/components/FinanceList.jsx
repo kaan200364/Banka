@@ -53,6 +53,12 @@ function FinanceList({ refreshTrigger }) {
         setEditDescription(t.description || "");
     }
 
+    function cancelEdit() {
+        setEditingId(null);
+        setEditCategory("");
+        setEditDescription("");
+    }
+
     async function handleUpdate(t) {
         try {
             const data = { category: editCategory, description: editDescription };
@@ -149,7 +155,7 @@ function FinanceList({ refreshTrigger }) {
                                                 {isEditing ? (
                                                     <>
                                                         <button onClick={() => handleUpdate(t)}>Kaydet</button>
-                                                        <button className="secondary" onClick={() => setEditingId(null)}>Vazgeç</button>
+                                                        <button className="secondary" onClick={cancelEdit}>Vazgeç</button>
                                                     </>
                                                 ) : (
                                                     <>

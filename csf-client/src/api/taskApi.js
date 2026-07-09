@@ -112,3 +112,30 @@ export async function uploadTaskAttachment(taskId, file) {
     }
     return response.json();
 }
+
+export async function getTaskDependencies(taskId) {
+    const response = await fetch(`${BASE_URL}/${taskId}/dependencies`, { headers: getAuthHeaders() });
+    if (!response.ok) throw new Error("Bağımlılıklar yüklenemedi");
+    return response.json();
+}
+
+export async function addTaskDependency(taskId, dependsOnTaskId) {
+    const response = await fetch(`${BASE_URL}/${taskId}/dependencies`, {
+        method: "POST",
+        headers: getAuthHeaders(),
+        body: JSON.stringify({ dependsOnTaskID: dependsOnTaskId }),
+    });
+    if (!response.ok) {
+        const errorData = await response.json();
+        throw errorData;
+    }
+    return response.json();
+}
+
+export async function removeTaskDependency(dependencyId) {
+    const response = await fetch(`${BASE_URL}/dependencies/${dependencyId}`, {
+        method: "DELETE",
+        headers: getAuthHeaders(),
+    });
+    if (!response.ok) throw new Error("Bağımlılık kaldırılamadı");
+}

@@ -1,6 +1,23 @@
 import { useState, useEffect } from "react";
 import { getProjects, deactivateProject } from "../api/projectApi";
 
+const PROJECT_STATUS_LABELS = {
+    Active: "Aktif",
+    Completed: "Tamamlandı",
+    OnHold: "Beklemede",
+    Cancelled: "İptal Edildi",
+};
+
+function getProjectBadgeClass(status) {
+    switch (status) {
+        case "Active": return "status-approved";
+        case "Completed": return "status-approved";
+        case "OnHold": return "status-draft";
+        case "Cancelled": return "status-rejected";
+        default: return "status-draft";
+    }
+}
+
 function ProjectList({ onEdit, refreshTrigger }) {
     const [projects, setProjects] = useState([]);
     const [loading, setLoading] = useState(true);
@@ -82,7 +99,7 @@ function ProjectList({ onEdit, refreshTrigger }) {
                                         <td>{p.projectName}</td>
                                         <td>{new Date(p.startDate).toLocaleDateString("tr-TR")}</td>
                                         <td>{p.endDate ? new Date(p.endDate).toLocaleDateString("tr-TR") : "-"}</td>
-                                        <td><span className="badge status-approved">{p.status === "Active" ? "Aktif" : p.status}</span></td>
+                                        <td><span className={`badge ${getProjectBadgeClass(p.status)}`}>{PROJECT_STATUS_LABELS[p.status] || p.status}</span></td>
                                         <td className="actions">
                                             <button onClick={() => onEdit(p)}>Düzenle</button>
                                             <button className="danger" onClick={() => handleDeactivate(p.projectID, p.projectName)}>

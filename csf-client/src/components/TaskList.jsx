@@ -131,7 +131,7 @@ function TaskList({ currentUser, onEdit, refreshTrigger }) {
                                         {expandedTaskId === t.taskID && (
                                             <tr>
                                                 <td colSpan="5">
-                                                    <TaskDetailPanel taskId={t.taskID} />
+                                                    <TaskDetailPanel taskId={t.taskID} currentProjectId={t.projectID} />
                                                 </td>
                                             </tr>
                                         )}

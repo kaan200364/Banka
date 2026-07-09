@@ -15,5 +15,8 @@ namespace CSF.API
         public string Status { get; set; } = "Active";
 
         public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
+
+        public int FailedLoginAttempts { get; set; } = 0;
+public DateTime? LockoutEndTime { get; set; }
     }
 }

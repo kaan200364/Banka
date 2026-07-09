@@ -1,6 +1,23 @@
 import { useState, useEffect } from "react";
 import { getFinancialSummary, getProjectSummary, getQuotationSummary, downloadReportPdf, downloadReportExcel, getDashboardSummary, getCustomerReport, getSupplierReport, getBankReport } from "../api/reportApi";
 
+const PROJECT_STATUS_LABELS = {
+    Active: "Aktif",
+    Completed: "Tamamlandı",
+    OnHold: "Beklemede",
+    Cancelled: "İptal Edildi",
+};
+
+function getProjectBadgeClass(status) {
+    switch (status) {
+        case "Active": return "status-approved";
+        case "Completed": return "status-approved";
+        case "OnHold": return "status-draft";
+        case "Cancelled": return "status-rejected";
+        default: return "status-draft";
+    }
+}
+
 function ReportsDashboard() {
     const [financial, setFinancial] = useState(null);
     const [projects, setProjects] = useState([]);
@@ -167,7 +184,7 @@ function ReportsDashboard() {
                                 return (
                                     <tr key={p.projectID}>
                                         <td>{p.projectName}</td>
-                                        <td><span className="badge status-approved">{p.status === "Active" ? "Aktif" : p.status}</span></td>
+                                        <td><span className={`badge ${getProjectBadgeClass(p.status)}`}>{PROJECT_STATUS_LABELS[p.status] || p.status}</span></td>
                                         <td>
                                             <div className="progress-bar-wrapper">
                                                 <div className="progress-bar" style={{ width: `${percent}%` }} />
