@@ -9,8 +9,10 @@ namespace CSF.API.DTOs
         public string Username { get; set; } = string.Empty;
 
         [Required]
-        [MinLength(6, ErrorMessage = "Şifre en az 6 karakter olmalıdır.")]
-        public string Password { get; set; } = string.Empty;
+[RegularExpression(
+    @"^(?=.*[0-9])(?=.*[!@#$%^&*(),.?"":{}|<>]).{8,}$",
+    ErrorMessage = "Şifre en az 8 karakter olmalı, en az bir rakam ve bir özel karakter içermelidir.")]
+public string Password { get; set; } = string.Empty;
 
         [Required]
         public string FullName { get; set; } = string.Empty;
@@ -56,8 +58,10 @@ public class ChangePasswordDto
     [Required(ErrorMessage = "Mevcut şifre zorunludur.")]
     public string CurrentPassword { get; set; } = string.Empty;
 
-    [Required(ErrorMessage = "Yeni şifre zorunludur.")]
-    [MinLength(6, ErrorMessage = "Yeni şifre en az 6 karakter olmalıdır.")]
-    public string NewPassword { get; set; } = string.Empty;
+ [Required(ErrorMessage = "Yeni şifre zorunludur.")]
+[RegularExpression(
+    @"^(?=.*[0-9])(?=.*[!@#$%^&*(),.?"":{}|<>]).{8,}$",
+    ErrorMessage = "Yeni şifre en az 8 karakter olmalı, en az bir rakam ve bir özel karakter içermelidir.")]
+public string NewPassword { get; set; } = string.Empty;
 }
 }

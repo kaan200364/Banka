@@ -18,9 +18,11 @@ namespace CSF.API.DTOs
         [MaxLength(50)]
         public string Username { get; set; } = string.Empty;
 
-        [Required(ErrorMessage = "Şifre zorunludur.")]
-        [MinLength(6, ErrorMessage = "Şifre en az 6 karakter olmalıdır.")]
-        public string Password { get; set; } = string.Empty;
+  [Required(ErrorMessage = "Şifre zorunludur.")]
+[RegularExpression(
+    @"^(?=.*[0-9])(?=.*[!@#$%^&*(),.?"":{}|<>]).{8,}$",
+    ErrorMessage = "Şifre en az 8 karakter olmalı, en az bir rakam ve bir özel karakter içermelidir.")]
+public string Password { get; set; } = string.Empty;
 
         [Required(ErrorMessage = "Ad soyad zorunludur.")]
         public string FullName { get; set; } = string.Empty;
