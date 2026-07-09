@@ -19,6 +19,8 @@ public DbSet<Contract> Contracts => Set<Contract>();
 public DbSet<Project> Projects => Set<Project>();
 public DbSet<ProjectTask> ProjectTasks => Set<ProjectTask>();
 public DbSet<Supplier> Suppliers => Set<Supplier>();
+public DbSet<TaskComment> TaskComments => Set<TaskComment>();
+public DbSet<TaskAttachment> TaskAttachments => Set<TaskAttachment>();
 
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
@@ -116,6 +118,19 @@ modelBuilder.Entity<Supplier>(entity =>
     entity.Property(s => s.TaxNumber).HasMaxLength(50);
     entity.Property(s => s.Status).HasMaxLength(20);
     entity.HasIndex(s => s.TaxNumber);
+});
+
+modelBuilder.Entity<TaskComment>(entity =>
+{
+    entity.HasKey(c => c.CommentID);
+    entity.Property(c => c.Content).IsRequired().HasMaxLength(1000);
+});
+
+modelBuilder.Entity<TaskAttachment>(entity =>
+{
+    entity.HasKey(a => a.AttachmentID);
+    entity.Property(a => a.FileName).IsRequired().HasMaxLength(255);
+    entity.Property(a => a.FilePath).IsRequired();
 });
         }
     }

@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import { getTasks, updateTaskStatus, deleteTask } from "../api/taskApi";
+import TaskDetailPanel from "./TaskDetailPanel";
 
 const STATUS_LABELS = { Pending: "Bekliyor", InProgress: "Devam Ediyor", Completed: "Tamamlandı" };
 const PRIORITY_LABELS = { Low: "Düşük", Medium: "Orta", High: "Yüksek" };
@@ -11,6 +12,7 @@ function TaskList({ currentUser, onEdit, refreshTrigger }) {
     const [searchTerm, setSearchTerm] = useState("");
     const [currentPage, setCurrentPage] = useState(1);
     const [totalPages, setTotalPages] = useState(1);
+    const [expandedTaskId, setExpandedTaskId] = useState(null);
     const pageSize = 10;
 
     const isManagerOrAdmin = currentUser.role === "Manager" || currentUser.role === "Administrator";
@@ -95,33 +97,45 @@ function TaskList({ currentUser, onEdit, refreshTrigger }) {
                                 <tr><td colSpan="5" className="empty-state">Henüz kayıtlı görev yok.</td></tr>
                             ) : (
                                 tasks.map((t) => (
-                                    <tr key={t.taskID}>
-                                        <td>
-                                            {t.parentTaskID && <span className="subtask-indent">↳ </span>}
-                                            {t.title}
-                                        </td>
-                                        <td>{PRIORITY_LABELS[t.priority]}</td>
-                                        <td>{t.dueDate ? new Date(t.dueDate).toLocaleDateString("tr-TR") : "-"}</td>
-                                        <td>
-                                            <select
-                                                value={t.status}
-                                                onChange={(e) => handleStatusChange(t.taskID, e.target.value)}
-                                                className="status-select"
-                                            >
-                                                <option value="Pending">Bekliyor</option>
-                                                <option value="InProgress">Devam Ediyor</option>
-                                                <option value="Completed">Tamamlandı</option>
-                                            </select>
-                                        </td>
-                                        <td className="actions">
-                                            {isManagerOrAdmin && (
-                                                <>
-                                                    <button onClick={() => onEdit(t)}>Düzenle</button>
-                                                    <button className="danger" onClick={() => handleDelete(t.taskID, t.title)}>Sil</button>
-                                                </>
-                                            )}
-                                        </td>
-                                    </tr>
+                                    <>
+                                        <tr key={t.taskID}>
+                                            <td>
+                                                {t.parentTaskID && <span className="subtask-indent">↳ </span>}
+                                                {t.title}
+                                            </td>
+                                            <td>{PRIORITY_LABELS[t.priority]}</td>
+                                            <td>{t.dueDate ? new Date(t.dueDate).toLocaleDateString("tr-TR") : "-"}</td>
+                                            <td>
+                                                <select
+                                                    value={t.status}
+                                                    onChange={(e) => handleStatusChange(t.taskID, e.target.value)}
+                                                    className="status-select"
+                                                >
+                                                    <option value="Pending">Bekliyor</option>
+                                                    <option value="InProgress">Devam Ediyor</option>
+                                                    <option value="Completed">Tamamlandı</option>
+                                                </select>
+                                            </td>
+                                            <td className="actions">
+                                                {isManagerOrAdmin && (
+                                                    <>
+                                                        <button onClick={() => onEdit(t)}>Düzenle</button>
+                                                        <button className="danger" onClick={() => handleDelete(t.taskID, t.title)}>Sil</button>
+                                                    </>
+                                                )}
+                                                <button onClick={() => setExpandedTaskId(expandedTaskId === t.taskID ? null : t.taskID)}>
+                                                    {expandedTaskId === t.taskID ? "Gizle" : "Detay"}
+                                                </button>
+                                            </td>
+                                        </tr>
+                                        {expandedTaskId === t.taskID && (
+                                            <tr>
+                                                <td colSpan="5">
+                                                    <TaskDetailPanel taskId={t.taskID} />
+                                                </td>
+                                            </tr>
+                                        )}
+                                    </>
                                 ))
                             )}
                         </tbody>

@@ -69,3 +69,46 @@ export async function deleteTask(id) {
         throw errorData;
     }
 }
+
+export async function getTaskComments(taskId) {
+    const response = await fetch(`${BASE_URL}/${taskId}/comments`, { headers: getAuthHeaders() });
+    if (!response.ok) throw new Error("Yorumlar yüklenemedi");
+    return response.json();
+}
+
+export async function addTaskComment(taskId, content) {
+    const response = await fetch(`${BASE_URL}/${taskId}/comments`, {
+        method: "POST",
+        headers: getAuthHeaders(),
+        body: JSON.stringify({ content }),
+    });
+    if (!response.ok) {
+        const errorData = await response.json();
+        throw errorData;
+    }
+    return response.json();
+}
+
+export async function getTaskAttachments(taskId) {
+    const response = await fetch(`${BASE_URL}/${taskId}/attachments`, { headers: getAuthHeaders() });
+    if (!response.ok) throw new Error("Dosyalar yüklenemedi");
+    return response.json();
+}
+
+export async function uploadTaskAttachment(taskId, file) {
+    const token = localStorage.getItem("token");
+    const formData = new FormData();
+    formData.append("file", file);
+
+    const response = await fetch(`${BASE_URL}/${taskId}/attachments`, {
+        method: "POST",
+        headers: { Authorization: `Bearer ${token}` }, // Dikkat: Content-Type YOK
+        body: formData,
+    });
+
+    if (!response.ok) {
+        const errorData = await response.json();
+        throw errorData;
+    }
+    return response.json();
+}

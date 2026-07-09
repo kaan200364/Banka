@@ -933,3 +933,91 @@ tbody tr:hover {
 .app-main {
   align-items: flex-start;
 }
+
+.task-detail-panel {
+  padding: 1rem;
+  background: var(--paper);
+  border-radius: 6px;
+  display: flex;
+  gap: 2rem;
+  flex-wrap: wrap;
+}
+
+.task-detail-section {
+  flex: 1;
+  min-width: 260px;
+}
+
+.task-detail-section h4 {
+  font-family: var(--font-display);
+  font-size: 0.9rem;
+  margin: 0 0 0.75rem;
+  color: var(--ink);
+}
+
+.attachment-list,
+.comment-list {
+  list-style: none;
+  padding: 0;
+  margin: 0 0 0.75rem;
+}
+
+.attachment-list li {
+  padding: 0.5rem 0;
+  font-size: 0.85rem;
+  border-bottom: 1px solid var(--line);
+}
+
+.attachment-meta {
+  color: var(--text-muted);
+  font-size: 0.75rem;
+}
+
+.comment-list li {
+  padding: 0.6rem 0;
+  border-bottom: 1px solid var(--line);
+}
+
+.comment-list strong {
+  font-size: 0.85rem;
+  color: var(--ink);
+}
+
+.comment-date {
+  font-size: 0.7rem;
+  color: var(--text-muted);
+  margin-left: 0.5rem;
+}
+
+.comment-list p {
+  margin: 0.3rem 0 0;
+  font-size: 0.85rem;
+}
+
+.upload-btn {
+  display: inline-block;
+  padding: 0.5rem 1rem;
+  background: var(--paper-raised);
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  font-size: 0.8rem;
+  font-weight: 600;
+  cursor: pointer;
+  color: var(--teal-dark);
+}
+
+.upload-btn:hover {
+  border-color: var(--teal);
+}
+
+.comment-form {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.comment-form input {
+  flex: 1;
+  padding: 0.5rem 0.7rem;
+  border: 1px solid var(--line);
+  border-radius: 6px;
+}

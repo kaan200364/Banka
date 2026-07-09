@@ -66,6 +66,7 @@ builder.Services.AddOpenApi();
 
 var app = builder.Build();
 app.UseCors("AllowReactApp");
+app.UseStaticFiles();
 app.UseAuthentication();
 app.UseAuthorization();
 app.MapControllers();

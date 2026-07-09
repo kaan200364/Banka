@@ -95,5 +95,47 @@ public async Task<IActionResult> Delete(Guid id)
         return BadRequest(new { message = ex.Message });
     }
 }
+
+[HttpPost("{id}/comments")]
+public async Task<ActionResult<TaskCommentDto>> AddComment(Guid id, CreateCommentDto dto)
+{
+    var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+    try
+    {
+        var comment = await _taskService.AddCommentAsync(id, dto, Guid.Parse(userId!));
+        return Ok(comment);
+    }
+    catch (InvalidOperationException ex)
+    {
+        return BadRequest(new { message = ex.Message });
+    }
+}
+
+[HttpGet("{id}/comments")]
+public async Task<ActionResult<List<TaskCommentDto>>> GetComments(Guid id)
+{
+    return Ok(await _taskService.GetCommentsAsync(id));
+}
+
+[HttpPost("{id}/attachments")]
+public async Task<ActionResult<TaskAttachmentDto>> UploadAttachment(Guid id, IFormFile file)
+{
+    var username = User.FindFirstValue(ClaimTypes.Name);
+    try
+    {
+        var attachment = await _taskService.AddAttachmentAsync(id, file, username);
+        return Ok(attachment);
+    }
+    catch (InvalidOperationException ex)
+    {
+        return BadRequest(new { message = ex.Message });
+    }
+}
+
+[HttpGet("{id}/attachments")]
+public async Task<ActionResult<List<TaskAttachmentDto>>> GetAttachments(Guid id)
+{
+    return Ok(await _taskService.GetAttachmentsAsync(id));
+}
     }
 }

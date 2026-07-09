@@ -151,6 +151,111 @@ public async Task<bool> DeleteAsync(Guid id)
     await _context.SaveChangesAsync();
     return true;
 }
+
+public async Task<TaskCommentDto> AddCommentAsync(Guid taskId, CreateCommentDto dto, Guid userId)
+{
+    var task = await _context.ProjectTasks.FindAsync(taskId);
+    if (task == null)
+        throw new InvalidOperationException("Görev bulunamadı.");
+
+    var comment = new TaskComment
+    {
+        TaskID = taskId,
+        UserID = userId,
+        Content = dto.Content,
+        CreatedAt = DateTime.UtcNow
+    };
+
+    _context.TaskComments.Add(comment);
+    await _context.SaveChangesAsync();
+
+    var user = await _context.Users.FindAsync(userId);
+
+    return new TaskCommentDto
+    {
+        CommentID = comment.CommentID,
+        UserID = comment.UserID,
+        UserFullName = user?.FullName ?? "Bilinmeyen",
+        Content = comment.Content,
+        CreatedAt = comment.CreatedAt
+    };
+}
+
+public async Task<List<TaskCommentDto>> GetCommentsAsync(Guid taskId)
+{
+    var comments = await _context.TaskComments
+        .Where(c => c.TaskID == taskId)
+        .OrderBy(c => c.CreatedAt)
+        .ToListAsync();
+
+    var result = new List<TaskCommentDto>();
+    foreach (var comment in comments)
+    {
+        var user = await _context.Users.FindAsync(comment.UserID);
+        result.Add(new TaskCommentDto
+        {
+            CommentID = comment.CommentID,
+            UserID = comment.UserID,
+            UserFullName = user?.FullName ?? "Bilinmeyen",
+            Content = comment.Content,
+            CreatedAt = comment.CreatedAt
+        });
+    }
+    return result;
+}
+
+public async Task<TaskAttachmentDto> AddAttachmentAsync(Guid taskId, IFormFile file, string? username)
+{
+    var task = await _context.ProjectTasks.FindAsync(taskId);
+    if (task == null)
+        throw new InvalidOperationException("Görev bulunamadı.");
+
+    var uploadsFolder = Path.Combine("wwwroot", "uploads", "tasks");
+    Directory.CreateDirectory(uploadsFolder);
+
+    var uniqueFileName = $"{Guid.NewGuid()}_{file.FileName}";
+    var filePath = Path.Combine(uploadsFolder, uniqueFileName);
+
+    using (var stream = new FileStream(filePath, FileMode.Create))
+    {
+        await file.CopyToAsync(stream);
+    }
+
+    var attachment = new TaskAttachment
+    {
+        TaskID = taskId,
+        FileName = file.FileName,
+        FilePath = $"/uploads/tasks/{uniqueFileName}",
+        UploadedBy = username,
+        UploadedAt = DateTime.UtcNow
+    };
+
+    _context.TaskAttachments.Add(attachment);
+    await _context.SaveChangesAsync();
+
+    return new TaskAttachmentDto
+    {
+        AttachmentID = attachment.AttachmentID,
+        FileName = attachment.FileName,
+        UploadedBy = attachment.UploadedBy,
+        UploadedAt = attachment.UploadedAt
+    };
+}
+
+public async Task<List<TaskAttachmentDto>> GetAttachmentsAsync(Guid taskId)
+{
+    return await _context.TaskAttachments
+        .Where(a => a.TaskID == taskId)
+        .OrderByDescending(a => a.UploadedAt)
+        .Select(a => new TaskAttachmentDto
+        {
+            AttachmentID = a.AttachmentID,
+            FileName = a.FileName,
+            UploadedBy = a.UploadedBy,
+            UploadedAt = a.UploadedAt
+        })
+        .ToListAsync();
+}
         
     }
 }
