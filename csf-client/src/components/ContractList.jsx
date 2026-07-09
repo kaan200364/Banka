@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import { getContracts, terminateContract, renewContract } from "../api/contractApi";
+import ContractAttachmentPanel from "./ContractAttachmentPanel";
 
 const STATUS_LABELS = {
     Active: "Aktif",
@@ -16,6 +17,7 @@ function ContractList({ refreshTrigger }) {
     const [searchTerm, setSearchTerm] = useState("");
     const [currentPage, setCurrentPage] = useState(1);
     const [totalPages, setTotalPages] = useState(1);
+    const [expandedContractId, setExpandedContractId] = useState(null);
     const pageSize = 10;
 
     useEffect(() => {
@@ -101,31 +103,43 @@ function ContractList({ refreshTrigger }) {
                                 <tr><td colSpan="5" className="empty-state">Henüz kayıtlı sözleşme yok.</td></tr>
                             ) : (
                                 contracts.map((c) => (
-                                    <tr key={c.contractID}>
-                                        <td className="mono">{c.contractNumber}</td>
-                                        <td>{new Date(c.startDate).toLocaleDateString("tr-TR")}</td>
-                                        <td>{new Date(c.endDate).toLocaleDateString("tr-TR")}</td>
-                                        <td><span className="badge status-approved">{STATUS_LABELS[c.status] || c.status}</span></td>
-                                        <td className="actions">
-                                            {c.status === "Active" && renewingId !== c.contractID && (
-                                                <>
-                                                    <button onClick={() => setRenewingId(c.contractID)}>Yenile</button>
-                                                    <button className="danger" onClick={() => handleTerminate(c.contractID)}>Feshet</button>
-                                                </>
-                                            )}
-                                            {renewingId === c.contractID && (
-                                                <div className="renew-inline">
-                                                    <input
-                                                        type="date"
-                                                        value={newEndDate}
-                                                        onChange={(e) => setNewEndDate(e.target.value)}
-                                                    />
-                                                    <button onClick={() => handleRenewSubmit(c.contractID)}>Onayla</button>
-                                                    <button className="secondary" onClick={() => setRenewingId(null)}>Vazgeç</button>
-                                                </div>
-                                            )}
-                                        </td>
-                                    </tr>
+                                    <>
+                                        <tr key={c.contractID}>
+                                            <td className="mono">{c.contractNumber}</td>
+                                            <td>{new Date(c.startDate).toLocaleDateString("tr-TR")}</td>
+                                            <td>{new Date(c.endDate).toLocaleDateString("tr-TR")}</td>
+                                            <td><span className="badge status-approved">{STATUS_LABELS[c.status] || c.status}</span></td>
+                                            <td className="actions">
+                                                {c.status === "Active" && renewingId !== c.contractID && (
+                                                    <>
+                                                        <button onClick={() => setRenewingId(c.contractID)}>Yenile</button>
+                                                        <button className="danger" onClick={() => handleTerminate(c.contractID)}>Feshet</button>
+                                                    </>
+                                                )}
+                                                {renewingId === c.contractID && (
+                                                    <div className="renew-inline">
+                                                        <input
+                                                            type="date"
+                                                            value={newEndDate}
+                                                            onChange={(e) => setNewEndDate(e.target.value)}
+                                                        />
+                                                        <button onClick={() => handleRenewSubmit(c.contractID)}>Onayla</button>
+                                                        <button className="secondary" onClick={() => setRenewingId(null)}>Vazgeç</button>
+                                                    </div>
+                                                )}
+                                                <button onClick={() => setExpandedContractId(expandedContractId === c.contractID ? null : c.contractID)}>
+                                                    {expandedContractId === c.contractID ? "Gizle" : "Dosyalar"}
+                                                </button>
+                                            </td>
+                                        </tr>
+                                        {expandedContractId === c.contractID && (
+                                            <tr>
+                                                <td colSpan="5">
+                                                    <ContractAttachmentPanel contractId={c.contractID} />
+                                                </td>
+                                            </tr>
+                                        )}
+                                    </>
                                 ))
                             )}
                         </tbody>
@@ -133,13 +147,9 @@ function ContractList({ refreshTrigger }) {
 
                     {totalPages > 1 && (
                         <div className="pagination">
-                            <button disabled={currentPage === 1} onClick={() => setCurrentPage((p) => p - 1)}>
-                                Önceki
-                            </button>
+                            <button disabled={currentPage === 1} onClick={() => setCurrentPage((p) => p - 1)}>Önceki</button>
                             <span>Sayfa {currentPage} / {totalPages}</span>
-                            <button disabled={currentPage === totalPages} onClick={() => setCurrentPage((p) => p + 1)}>
-                                Sonraki
-                            </button>
+                            <button disabled={currentPage === totalPages} onClick={() => setCurrentPage((p) => p + 1)}>Sonraki</button>
                         </div>
                     )}
                 </>

@@ -153,5 +153,58 @@ public async Task<ContractDto> RenewAsync(Guid contractId, DateTime newEndDate, 
 
     return MapToDto(newContract);
 }
+
+public async Task<ContractAttachmentDto> AddAttachmentAsync(Guid contractId, IFormFile file, string? username)
+{
+    var contract = await _context.Contracts.FindAsync(contractId);
+    if (contract == null)
+        throw new InvalidOperationException("Sözleşme bulunamadı.");
+
+    var uploadsFolder = Path.Combine("wwwroot", "uploads", "contracts");
+    Directory.CreateDirectory(uploadsFolder);
+
+    var uniqueFileName = $"{Guid.NewGuid()}_{file.FileName}";
+    var filePath = Path.Combine(uploadsFolder, uniqueFileName);
+
+    using (var stream = new FileStream(filePath, FileMode.Create))
+    {
+        await file.CopyToAsync(stream);
+    }
+
+    var attachment = new ContractAttachment
+    {
+        ContractID = contractId,
+        FileName = file.FileName,
+        FilePath = $"/uploads/contracts/{uniqueFileName}",
+        UploadedBy = username,
+        UploadedAt = DateTime.UtcNow
+    };
+
+    _context.ContractAttachments.Add(attachment);
+    await _context.SaveChangesAsync();
+
+    return new ContractAttachmentDto
+    {
+        AttachmentID = attachment.AttachmentID,
+        FileName = attachment.FileName,
+        UploadedBy = attachment.UploadedBy,
+        UploadedAt = attachment.UploadedAt
+    };
+}
+
+public async Task<List<ContractAttachmentDto>> GetAttachmentsAsync(Guid contractId)
+{
+    return await _context.ContractAttachments
+        .Where(a => a.ContractID == contractId)
+        .OrderByDescending(a => a.UploadedAt)
+        .Select(a => new ContractAttachmentDto
+        {
+            AttachmentID = a.AttachmentID,
+            FileName = a.FileName,
+            UploadedBy = a.UploadedBy,
+            UploadedAt = a.UploadedAt
+        })
+        .ToListAsync();
+}
     }
 }

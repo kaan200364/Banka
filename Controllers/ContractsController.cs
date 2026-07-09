@@ -68,5 +68,26 @@ public async Task<ActionResult<ContractDto>> Renew(Guid id, [FromBody] RenewCont
         return BadRequest(new { message = ex.Message });
     }
 }
+
+[HttpPost("{id}/attachments")]
+public async Task<ActionResult<ContractAttachmentDto>> UploadAttachment(Guid id, IFormFile file)
+{
+    var username = User.FindFirstValue(ClaimTypes.Name);
+    try
+    {
+        var attachment = await _contractService.AddAttachmentAsync(id, file, username);
+        return Ok(attachment);
+    }
+    catch (InvalidOperationException ex)
+    {
+        return BadRequest(new { message = ex.Message });
+    }
+}
+
+[HttpGet("{id}/attachments")]
+public async Task<ActionResult<List<ContractAttachmentDto>>> GetAttachments(Guid id)
+{
+    return Ok(await _contractService.GetAttachmentsAsync(id));
+}
     }
 }

@@ -58,3 +58,27 @@ export async function renewContract(id, newEndDate) {
     }
     return response.json();
 }
+
+export async function getContractAttachments(contractId) {
+    const response = await fetch(`${BASE_URL}/${contractId}/attachments`, { headers: getAuthHeaders() });
+    if (!response.ok) throw new Error("Dosyalar yüklenemedi");
+    return response.json();
+}
+
+export async function uploadContractAttachment(contractId, file) {
+    const token = localStorage.getItem("token");
+    const formData = new FormData();
+    formData.append("file", file);
+
+    const response = await fetch(`${BASE_URL}/${contractId}/attachments`, {
+        method: "POST",
+        headers: { Authorization: `Bearer ${token}` },
+        body: formData,
+    });
+
+    if (!response.ok) {
+        const errorData = await response.json();
+        throw errorData;
+    }
+    return response.json();
+}

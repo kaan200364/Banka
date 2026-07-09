@@ -35,6 +35,16 @@ public Guid? RenewedFromContractID { get; set; }
 public class RenewContractDto
 {
     [Required(ErrorMessage = "Yeni bitiş tarihi zorunludur.")]
-    public DateTime NewEndDate { get; set; }
+    public DateTime NewEndDate
+    
+     { get; set; }
+}
+
+public class ContractAttachmentDto
+{
+    public Guid AttachmentID { get; set; }
+    public string FileName { get; set; } = string.Empty;
+    public string? UploadedBy { get; set; }
+    public DateTime UploadedAt { get; set; }
 }
 }
