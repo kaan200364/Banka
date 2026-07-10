@@ -40,4 +40,15 @@ public string Password { get; set; } = string.Empty;
         [Required(ErrorMessage = "Rol seçilmelidir.")]
         public string Role { get; set; } = string.Empty;
     }
+
+    public class SecurityLogDto
+{
+    public Guid SecurityLogID { get; set; }
+    public string Username { get; set; } = string.Empty;
+    public string EventType { get; set; } = string.Empty;
+    public bool Success { get; set; }
+    public string? IpAddress { get; set; }
+    public string? Details { get; set; }
+    public DateTime Timestamp { get; set; }
+}
 }

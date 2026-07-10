@@ -3,6 +3,7 @@ using CSF.API.Services;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using System.Security.Claims;
+using Microsoft.EntityFrameworkCore;
 
 namespace CSF.API.Controllers
 {
@@ -31,12 +32,13 @@ namespace CSF.API.Controllers
         }
 
         // POST /api/v1/auth/login
-    [HttpPost("login")]
+[HttpPost("login")]
 public async Task<ActionResult<AuthResponseDto>> Login(LoginDto dto)
 {
+    var ipAddress = HttpContext.Connection.RemoteIpAddress?.ToString();
     try
     {
-        var result = await _authService.LoginAsync(dto);
+        var result = await _authService.LoginAsync(dto, ipAddress);
         if (result == null)
             return Unauthorized(new { message = "Kullanıcı adı veya şifre hatalı." });
 
@@ -98,5 +100,27 @@ public async Task<ActionResult<AuthResponseDto>> Login(LoginDto dto)
                 return BadRequest(new { message = ex.Message });
             }
         }
+
+        [HttpGet("security-logs")]
+[Authorize(Roles = "Administrator")]
+public async Task<ActionResult<List<SecurityLogDto>>> GetSecurityLogs()
+{
+    var logs = await _context.SecurityLogs
+        .OrderByDescending(s => s.Timestamp)
+        .Take(100)
+        .Select(s => new SecurityLogDto
+        {
+            SecurityLogID = s.SecurityLogID,
+            Username = s.Username,
+            EventType = s.EventType,
+            Success = s.Success,
+            IpAddress = s.IpAddress,
+            Details = s.Details,
+            Timestamp = s.Timestamp
+        })
+        .ToListAsync();
+
+    return Ok(logs);
+}
     }
 }

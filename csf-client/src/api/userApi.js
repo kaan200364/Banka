@@ -53,3 +53,11 @@ export async function deactivateUser(id) {
         throw errorData;
     }
 }
+
+export async function getSecurityLogs() {
+    const response = await fetch("http://localhost:5144/api/v1/auth/security-logs", {
+        headers: getAuthHeaders(),
+    });
+    if (!response.ok) throw new Error("Güvenlik logları yüklenemedi");
+    return response.json();
+}

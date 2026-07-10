@@ -24,6 +24,7 @@ public DbSet<TaskAttachment> TaskAttachments => Set<TaskAttachment>();
 public DbSet<ContractAttachment> ContractAttachments => Set<ContractAttachment>();
 public DbSet<TaskDependency> TaskDependencies => Set<TaskDependency>();
 public DbSet<TaskActivity> TaskActivities => Set<TaskActivity>();
+public DbSet<SecurityLog> SecurityLogs => Set<SecurityLog>();
 
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
@@ -163,6 +164,13 @@ modelBuilder.Entity<TaskActivity>(entity =>
     entity.HasKey(a => a.ActivityID);
     entity.Property(a => a.ActivityType).IsRequired().HasMaxLength(50);
     entity.Property(a => a.Description).IsRequired().HasMaxLength(500);
+});
+
+modelBuilder.Entity<SecurityLog>(entity =>
+{
+    entity.HasKey(s => s.SecurityLogID);
+    entity.Property(s => s.Username).IsRequired().HasMaxLength(50);
+    entity.Property(s => s.EventType).IsRequired().HasMaxLength(50);
 });
         }
     }

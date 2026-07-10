@@ -20,7 +20,6 @@ namespace CSF.API.Services
 
         public async Task<AuthResponseDto?> RegisterAsync(RegisterDto dto)
         {
-            // Kullanıcı adı zaten alınmış mı kontrol et
             var exists = await _context.Users.AnyAsync(u => u.Username == dto.Username);
             if (exists) return null;
 
@@ -41,66 +40,126 @@ namespace CSF.API.Services
 
             return new AuthResponseDto
             {
+                UserID = user.UserID,
                 Token = token,
                 Username = user.Username,
                 FullName = user.FullName,
-                Role = user.Role,
-                UserID = user.UserID
+                Role = user.Role
             };
         }
-public async Task<AuthResponseDto?> LoginAsync(LoginDto dto)
-{
-    var user = await _context.Users.FirstOrDefaultAsync(u => u.Username == dto.Username);
-    if (user == null) return null;
 
-    // KİLİT KONTROLÜ
-    if (user.LockoutEndTime.HasValue && user.LockoutEndTime.Value > DateTime.UtcNow)
-    {
-        var remainingMinutes = Math.Ceiling((user.LockoutEndTime.Value - DateTime.UtcNow).TotalMinutes);
-        throw new InvalidOperationException(
-            $"Hesabınız çok fazla başarısız giriş denemesi nedeniyle kilitlendi. Lütfen {remainingMinutes} dakika sonra tekrar deneyin.");
-    }
-
-    // Kilit süresi dolmuşsa, sayaçları sıfırla
-    if (user.LockoutEndTime.HasValue && user.LockoutEndTime.Value <= DateTime.UtcNow)
-    {
-        user.FailedLoginAttempts = 0;
-        user.LockoutEndTime = null;
-    }
-
-    bool passwordValid = BCrypt.Net.BCrypt.Verify(dto.Password, user.PasswordHash);
-
-    if (!passwordValid)
-    {
-        user.FailedLoginAttempts += 1;
-
-        if (user.FailedLoginAttempts >= 5)
+        public async Task<AuthResponseDto?> LoginAsync(LoginDto dto, string? ipAddress = null)
         {
-            user.LockoutEndTime = DateTime.UtcNow.AddMinutes(15);
+            var user = await _context.Users.FirstOrDefaultAsync(u => u.Username == dto.Username);
+
+            if (user == null)
+            {
+                await LogSecurityEventAsync(dto.Username, false, ipAddress, "Kullanıcı bulunamadı.");
+                return null;
+            }
+
+            // KİLİT KONTROLÜ
+            if (user.LockoutEndTime.HasValue && user.LockoutEndTime.Value > DateTime.UtcNow)
+            {
+                var remainingMinutes = Math.Ceiling((user.LockoutEndTime.Value - DateTime.UtcNow).TotalMinutes);
+                await LogSecurityEventAsync(dto.Username, false, ipAddress, "Hesap kilitliyken giriş denendi.");
+                throw new InvalidOperationException(
+                    $"Hesabınız çok fazla başarısız giriş denemesi nedeniyle kilitlendi. Lütfen {remainingMinutes} dakika sonra tekrar deneyin.");
+            }
+
+            // Kilit süresi dolmuşsa, sayaçları sıfırla
+            if (user.LockoutEndTime.HasValue && user.LockoutEndTime.Value <= DateTime.UtcNow)
+            {
+                user.FailedLoginAttempts = 0;
+                user.LockoutEndTime = null;
+            }
+
+            bool passwordValid = BCrypt.Net.BCrypt.Verify(dto.Password, user.PasswordHash);
+
+            if (!passwordValid)
+            {
+                user.FailedLoginAttempts += 1;
+
+                if (user.FailedLoginAttempts >= 5)
+                {
+                    user.LockoutEndTime = DateTime.UtcNow.AddMinutes(15);
+                }
+
+                await _context.SaveChangesAsync();
+                await LogSecurityEventAsync(dto.Username, false, ipAddress, "Şifre hatalı.");
+                return null;
+            }
+
+            // Şifre doğru — başarısız deneme sayacını sıfırla
+            user.FailedLoginAttempts = 0;
+            user.LockoutEndTime = null;
+
+            await _context.SaveChangesAsync();
+
+            var token = GenerateToken(user);
+
+            await LogSecurityEventAsync(dto.Username, true, ipAddress, "Giriş başarılı.");
+
+            return new AuthResponseDto
+            {
+                UserID = user.UserID,
+                Token = token,
+                Username = user.Username,
+                FullName = user.FullName,
+                Role = user.Role
+            };
         }
 
-        await _context.SaveChangesAsync();
-        return null;
-    }
+        public async Task<UserDto> UpdateProfileAsync(Guid userId, UpdateProfileDto dto)
+        {
+            var user = await _context.Users.FindAsync(userId);
+            if (user == null)
+                throw new InvalidOperationException("Kullanıcı bulunamadı.");
 
-    // Şifre doğru — başarısız deneme sayacını sıfırla
-    user.FailedLoginAttempts = 0;
-    user.LockoutEndTime = null;
+            user.FullName = dto.FullName;
+            user.Email = dto.Email;
 
+            await _context.SaveChangesAsync();
 
-    await _context.SaveChangesAsync();
+            return new UserDto
+            {
+                UserID = user.UserID,
+                Username = user.Username,
+                FullName = user.FullName,
+                Email = user.Email,
+                Role = user.Role,
+                Status = user.Status
+            };
+        }
 
-    var token = GenerateToken(user);
+        public async Task ChangePasswordAsync(Guid userId, ChangePasswordDto dto)
+        {
+            var user = await _context.Users.FindAsync(userId);
+            if (user == null)
+                throw new InvalidOperationException("Kullanıcı bulunamadı.");
 
-    return new AuthResponseDto
-    {
-        UserID = user.UserID,
-        Token = token,
-        Username = user.Username,
-        FullName = user.FullName,
-        Role = user.Role
-    };
-}
+            bool currentPasswordValid = BCrypt.Net.BCrypt.Verify(dto.CurrentPassword, user.PasswordHash);
+            if (!currentPasswordValid)
+                throw new InvalidOperationException("Mevcut şifre yanlış.");
+
+            user.PasswordHash = BCrypt.Net.BCrypt.HashPassword(dto.NewPassword);
+            await _context.SaveChangesAsync();
+        }
+
+        private async Task LogSecurityEventAsync(string username, bool success, string? ipAddress, string details)
+        {
+            _context.SecurityLogs.Add(new SecurityLog
+            {
+                Username = username,
+                EventType = "LoginAttempt",
+                Success = success,
+                IpAddress = ipAddress,
+                Details = details,
+                Timestamp = DateTime.UtcNow
+            });
+            await _context.SaveChangesAsync();
+        }
+
         private string GenerateToken(User user)
         {
             var claims = new List<Claim>
@@ -125,41 +184,5 @@ public async Task<AuthResponseDto?> LoginAsync(LoginDto dto)
 
             return new JwtSecurityTokenHandler().WriteToken(token);
         }
-
-        public async Task<UserDto> UpdateProfileAsync(Guid userId, UpdateProfileDto dto)
-{
-    var user = await _context.Users.FindAsync(userId);
-    if (user == null)
-        throw new InvalidOperationException("Kullanıcı bulunamadı.");
-
-    user.FullName = dto.FullName;
-    user.Email = dto.Email;
-
-    await _context.SaveChangesAsync();
-
-    return new UserDto
-    {
-        UserID = user.UserID,
-        Username = user.Username,
-        FullName = user.FullName,
-        Email = user.Email,
-        Role = user.Role,
-        Status = user.Status
-    };
-}
-
-public async Task ChangePasswordAsync(Guid userId, ChangePasswordDto dto)
-{
-    var user = await _context.Users.FindAsync(userId);
-    if (user == null)
-        throw new InvalidOperationException("Kullanıcı bulunamadı.");
-
-    bool currentPasswordValid = BCrypt.Net.BCrypt.Verify(dto.CurrentPassword, user.PasswordHash);
-    if (!currentPasswordValid)
-        throw new InvalidOperationException("Mevcut şifre yanlış.");
-
-    user.PasswordHash = BCrypt.Net.BCrypt.HashPassword(dto.NewPassword);
-    await _context.SaveChangesAsync();
-}
     }
 }

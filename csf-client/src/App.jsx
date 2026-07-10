@@ -21,6 +21,7 @@ import UserList from "./components/UserList";
 import SupplierForm from "./components/SupplierForm";
 import SupplierList from "./components/SupplierList";
 import ProfilePage from "./components/ProfilePage";
+import SecurityLogList from "./components/SecurityLogList";
 
 function App() {
   const [user, setUser] = useState(() => {
@@ -220,10 +221,14 @@ function App() {
         {activeTab === "reports" && canSeeReportsModule && <ReportsDashboard />}
 
         {activeTab === "users" && canSeeUserModule && (
-          <div className="app-main">
-            <UserForm onSaved={handleUserSaved} />
-            <UserList currentUserId={user.userID} refreshTrigger={userRefresh} />
-          </div>
+          <>
+            <div className="app-main">
+              <UserForm onSaved={handleUserSaved} />
+              <UserList currentUserId={user.userID} refreshTrigger={userRefresh} />
+            </div>
+            <h2 className="dashboard-title">Güvenlik Logları (Son 100 Kayıt)</h2>
+            <SecurityLogList />
+          </>
         )}
 
         {activeTab === "profile" && <ProfilePage />}
