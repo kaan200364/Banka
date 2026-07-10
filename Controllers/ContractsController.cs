@@ -89,5 +89,11 @@ public async Task<ActionResult<List<ContractAttachmentDto>>> GetAttachments(Guid
 {
     return Ok(await _contractService.GetAttachmentsAsync(id));
 }
+
+[HttpGet("expiring-soon")]
+public async Task<ActionResult<List<ContractDto>>> GetExpiringSoon()
+{
+    return Ok(await _contractService.GetExpiringSoonAsync());
+}
     }
 }

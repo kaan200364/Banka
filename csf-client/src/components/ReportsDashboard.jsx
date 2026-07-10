@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { getFinancialSummary, getProjectSummary, getQuotationSummary, downloadReportPdf, downloadReportExcel, getDashboardSummary, getCustomerReport, getSupplierReport, getBankReport } from "../api/reportApi";
+import { getFinancialSummary, getProjectSummary, getQuotationSummary, downloadReportPdf, downloadReportExcel, getDashboardSummary, getCustomerReport, getSupplierReport, getBankReport, getContractReport, getTaskReport } from "../api/reportApi";
 
 const PROJECT_STATUS_LABELS = {
     Active: "Aktif",
@@ -30,6 +30,8 @@ function ReportsDashboard() {
     const [customerReport, setCustomerReport] = useState([]);
     const [supplierReport, setSupplierReport] = useState([]);
     const [bankReport, setBankReport] = useState([]);
+    const [contractReport, setContractReport] = useState(null);
+    const [taskReport, setTaskReport] = useState(null);
 
     useEffect(() => {
         loadAll();
@@ -38,7 +40,7 @@ function ReportsDashboard() {
     async function loadAll() {
         try {
             setLoading(true);
-            const [fin, proj, quo, dash, custRep, supRep, bankRep] = await Promise.all([
+            const [fin, proj, quo, dash, custRep, supRep, bankRep, contRep, taskRep] = await Promise.all([
                 getFinancialSummary(fromDate, toDate),
                 getProjectSummary(),
                 getQuotationSummary(),
@@ -46,6 +48,8 @@ function ReportsDashboard() {
                 getCustomerReport(),
                 getSupplierReport(),
                 getBankReport(),
+                getContractReport(),
+                getTaskReport(),
             ]);
             setFinancial(fin);
             setProjects(proj);
@@ -54,6 +58,8 @@ function ReportsDashboard() {
             setCustomerReport(custRep);
             setSupplierReport(supRep);
             setBankReport(bankRep);
+            setContractReport(contRep);
+            setTaskReport(taskRep);
             setError(null);
         } catch (err) {
             setError("Raporlar yüklenirken bir hata oluştu.");
@@ -117,22 +123,18 @@ function ReportsDashboard() {
                     <span className="stat-label">Toplam Cari</span>
                     <span className="stat-value">{dashboard.totalCustomers}</span>
                 </div>
-
                 <div className="stat-card stat-balance">
                     <span className="stat-label">Toplam Tedarikçi</span>
                     <span className="stat-value">{dashboard.totalSuppliers}</span>
                 </div>
-
                 <div className="stat-card stat-income">
                     <span className="stat-label">Toplam Banka Bakiyesi</span>
                     <span className="stat-value">{formatMoney(dashboard.totalBankBalance)} TRY</span>
                 </div>
-
                 <div className="stat-card stat-quotation">
                     <span className="stat-label">Aktif Proje</span>
                     <span className="stat-value">{dashboard.activeProjectsCount}</span>
                 </div>
-
                 <div className="stat-card stat-expense">
                     <span className="stat-label">Bekleyen Görev</span>
                     <span className="stat-value">{dashboard.pendingTasksCount}</span>
@@ -145,18 +147,15 @@ function ReportsDashboard() {
                     <span className="stat-value">{formatMoney(financial.totalIncome)} TRY</span>
                     <span className="stat-sub">{financial.incomeCount} işlem</span>
                 </div>
-
                 <div className="stat-card stat-expense">
                     <span className="stat-label">Toplam Gider</span>
                     <span className="stat-value">{formatMoney(financial.totalExpense)} TRY</span>
                     <span className="stat-sub">{financial.expenseCount} işlem</span>
                 </div>
-
                 <div className="stat-card stat-balance">
                     <span className="stat-label">Net Bakiye</span>
                     <span className="stat-value">{formatMoney(financial.netBalance)} TRY</span>
                 </div>
-
                 <div className="stat-card stat-quotation">
                     <span className="stat-label">Onaylı Teklif Tutarı</span>
                     <span className="stat-value">{formatMoney(quotations.totalApprovedAmount)} TRY</span>
@@ -165,7 +164,6 @@ function ReportsDashboard() {
             </div>
 
             <h2 className="dashboard-title">Proje İlerlemesi</h2>
-
             <div className="customer-list">
                 <table>
                     <thead>
@@ -275,6 +273,46 @@ function ReportsDashboard() {
                         )}
                     </tbody>
                 </table>
+            </div>
+
+            <h2 className="dashboard-title">Sözleşme Özeti</h2>
+            <div className="stat-cards">
+                <div className="stat-card stat-balance">
+                    <span className="stat-label">Toplam Sözleşme</span>
+                    <span className="stat-value">{contractReport.totalContracts}</span>
+                </div>
+                <div className="stat-card stat-income">
+                    <span className="stat-label">Aktif</span>
+                    <span className="stat-value">{contractReport.activeCount}</span>
+                </div>
+                <div className="stat-card stat-expense">
+                    <span className="stat-label">Feshedilen</span>
+                    <span className="stat-value">{contractReport.terminatedCount}</span>
+                </div>
+                <div className="stat-card stat-quotation">
+                    <span className="stat-label">30 Gün İçinde Bitecek</span>
+                    <span className="stat-value">{contractReport.expiringSoonCount}</span>
+                </div>
+            </div>
+
+            <h2 className="dashboard-title">Görev Özeti</h2>
+            <div className="stat-cards">
+                <div className="stat-card stat-balance">
+                    <span className="stat-label">Toplam Görev</span>
+                    <span className="stat-value">{taskReport.totalTasks}</span>
+                </div>
+                <div className="stat-card stat-quotation">
+                    <span className="stat-label">Bekliyor</span>
+                    <span className="stat-value">{taskReport.pendingCount}</span>
+                </div>
+                <div className="stat-card stat-income">
+                    <span className="stat-label">Tamamlandı</span>
+                    <span className="stat-value">{taskReport.completedCount}</span>
+                </div>
+                <div className="stat-card stat-expense">
+                    <span className="stat-label">Süresi Geçmiş</span>
+                    <span className="stat-value">{taskReport.overdueCount}</span>
+                </div>
             </div>
         </div>
     );

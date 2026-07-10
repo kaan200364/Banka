@@ -82,3 +82,9 @@ export async function uploadContractAttachment(contractId, file) {
     }
     return response.json();
 }
+
+export async function getExpiringSoonContracts() {
+    const response = await fetch(`${BASE_URL}/expiring-soon`, { headers: getAuthHeaders() });
+    if (!response.ok) throw new Error("Yaklaşan sözleşmeler yüklenemedi");
+    return response.json();
+}

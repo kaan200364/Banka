@@ -168,5 +168,35 @@ public async Task<List<BankReportItemDto>> GetBankReportAsync()
 
     return result.OrderByDescending(r => r.Balance).ToList();
 }
+
+public async Task<ContractReportDto> GetContractReportAsync()
+{
+    var contracts = await _context.Contracts.ToListAsync();
+    var expiringSoon = contracts.Count(c => c.Status == "Active" && c.EndDate <= DateTime.UtcNow.AddDays(30));
+
+    return new ContractReportDto
+    {
+        TotalContracts = contracts.Count,
+        ActiveCount = contracts.Count(c => c.Status == "Active"),
+        TerminatedCount = contracts.Count(c => c.Status == "Terminated"),
+        RenewedCount = contracts.Count(c => c.Status == "Renewed"),
+        ExpiringSoonCount = expiringSoon
+    };
+}
+
+public async Task<TaskReportDto> GetTaskReportAsync()
+{
+    var tasks = await _context.ProjectTasks.ToListAsync();
+    var overdue = tasks.Count(t => t.DueDate.HasValue && t.DueDate.Value < DateTime.UtcNow && t.Status != "Completed");
+
+    return new TaskReportDto
+    {
+        TotalTasks = tasks.Count,
+        PendingCount = tasks.Count(t => t.Status == "Pending"),
+        InProgressCount = tasks.Count(t => t.Status == "InProgress"),
+        CompletedCount = tasks.Count(t => t.Status == "Completed"),
+        OverdueCount = overdue
+    };
+}
     }
 }

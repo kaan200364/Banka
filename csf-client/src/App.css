@@ -3,6 +3,7 @@
 :root {
   --ink: #16233F;
   --ink-soft: #2A3B5C;
+  --ink-tint: #E7E9F0;
   --paper: #EDF1F6;
   --paper-raised: #FFFFFF;
   --line: #DEE3EC;
@@ -104,7 +105,7 @@ body {
 }
 
 .tab-nav .tab.active {
-  background: var(--teal);
+  background: var(--ink);
   color: #fff;
 }
 
@@ -136,14 +137,14 @@ body {
 }
 
 .sub-tab:hover {
-  border-color: var(--teal);
-  color: var(--teal-dark);
+  border-color: var(--ink-soft);
+  color: var(--ink);
 }
 
 .sub-tab.active {
-  background: var(--teal);
+  background: var(--ink);
   color: white;
-  border-color: var(--teal);
+  border-color: var(--ink);
 }
 
 .app-main {
@@ -213,8 +214,8 @@ body {
 .form-group select:focus,
 .form-group textarea:focus {
   outline: none;
-  border-color: var(--teal);
-  box-shadow: 0 0 0 3px var(--teal-tint);
+  border-color: var(--ink-soft);
+  box-shadow: 0 0 0 3px var(--ink-tint);
   background: var(--paper-raised);
 }
 
@@ -260,13 +261,13 @@ button:active {
 }
 
 button[type="submit"] {
-  background: var(--teal);
+  background: var(--ink);
   color: white;
   box-shadow: var(--shadow-sm);
 }
 
 button[type="submit"]:hover:not(:disabled) {
-  background: var(--teal-dark);
+  background: var(--ink-soft);
 }
 
 button[type="submit"]:disabled {
@@ -360,9 +361,9 @@ td:nth-child(4) {
 }
 
 .actions button:hover {
-  border-color: var(--teal);
-  color: var(--teal-dark);
-  background: var(--teal-tint);
+  border-color: var(--ink-soft);
+  color: var(--ink);
+  background: var(--ink-tint);
 }
 
 .actions button.danger {
@@ -414,8 +415,8 @@ td:nth-child(4) {
 
 .search-bar input:focus {
   outline: none;
-  border-color: var(--teal);
-  box-shadow: 0 0 0 3px var(--teal-tint);
+  border-color: var(--ink-soft);
+  box-shadow: 0 0 0 3px var(--ink-tint);
 }
 
 /* ---------- PAGINATION ---------- */
@@ -786,4 +787,13 @@ td:nth-child(4) {
   * {
     transition: none !important;
   }
+}
+
+.expiry-warning {
+  background: var(--rust-tint);
+  color: var(--rust);
+  padding: 0.85rem 1.1rem;
+  border-bottom: 1px solid var(--line);
+  font-size: 0.85rem;
+  font-weight: 500;
 }

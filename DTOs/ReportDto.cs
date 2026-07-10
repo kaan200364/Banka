@@ -60,4 +60,22 @@ public class BankReportItemDto
     public decimal Balance { get; set; }
     public int TransactionCount { get; set; }
 }
+
+public class ContractReportDto
+{
+    public int TotalContracts { get; set; }
+    public int ActiveCount { get; set; }
+    public int TerminatedCount { get; set; }
+    public int RenewedCount { get; set; }
+    public int ExpiringSoonCount { get; set; }
+}
+
+public class TaskReportDto
+{
+    public int TotalTasks { get; set; }
+    public int PendingCount { get; set; }
+    public int InProgressCount { get; set; }
+    public int CompletedCount { get; set; }
+    public int OverdueCount { get; set; }
+}
 }

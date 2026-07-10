@@ -83,5 +83,17 @@ public async Task<ActionResult<List<BankReportItemDto>>> GetBankReport()
 {
     return Ok(await _reportService.GetBankReportAsync());
 }
+
+[HttpGet("contract-summary")]
+public async Task<ActionResult<ContractReportDto>> GetContractReport()
+{
+    return Ok(await _reportService.GetContractReportAsync());
+}
+
+[HttpGet("task-summary")]
+public async Task<ActionResult<TaskReportDto>> GetTaskReport()
+{
+    return Ok(await _reportService.GetTaskReportAsync());
+}
     }
 }

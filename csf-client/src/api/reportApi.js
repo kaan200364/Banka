@@ -93,3 +93,15 @@ export async function getBankReport() {
     if (!response.ok) throw new Error("Banka raporu yüklenemedi");
     return response.json();
 }
+
+export async function getContractReport() {
+    const response = await fetch(`${BASE_URL}/contract-summary`, { headers: getAuthHeaders() });
+    if (!response.ok) throw new Error("Sözleşme raporu yüklenemedi");
+    return response.json();
+}
+
+export async function getTaskReport() {
+    const response = await fetch(`${BASE_URL}/task-summary`, { headers: getAuthHeaders() });
+    if (!response.ok) throw new Error("Görev raporu yüklenemedi");
+    return response.json();
+}

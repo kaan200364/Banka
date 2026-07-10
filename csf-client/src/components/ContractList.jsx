@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { getContracts, terminateContract, renewContract } from "../api/contractApi";
+import { getContracts, terminateContract, renewContract, getExpiringSoonContracts } from "../api/contractApi";
 import ContractAttachmentPanel from "./ContractAttachmentPanel";
 
 const STATUS_LABELS = {
@@ -27,6 +27,7 @@ function ContractList({ refreshTrigger }) {
     const [currentPage, setCurrentPage] = useState(1);
     const [totalPages, setTotalPages] = useState(1);
     const [expandedContractId, setExpandedContractId] = useState(null);
+    const [expiringSoon, setExpiringSoon] = useState([]);
     const pageSize = 10;
 
     useEffect(() => {
@@ -39,6 +40,10 @@ function ContractList({ refreshTrigger }) {
         }, 400);
         return () => clearTimeout(delayDebounce);
     }, [refreshTrigger, searchTerm, currentPage]);
+
+    useEffect(() => {
+        getExpiringSoonContracts().then(setExpiringSoon).catch(console.error);
+    }, [refreshTrigger]);
 
     async function load() {
         try {
@@ -83,6 +88,13 @@ function ContractList({ refreshTrigger }) {
 
     return (
         <div className="customer-list">
+            {expiringSoon.length > 0 && (
+                <div className="expiry-warning">
+                    ⚠️ {expiringSoon.length} sözleşmenin bitiş tarihi 30 gün içinde doluyor: {" "}
+                    {expiringSoon.map((c) => c.contractNumber).join(", ")}
+                </div>
+            )}
+
             <div className="search-bar">
                 <input
                     type="text"

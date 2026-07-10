@@ -206,5 +206,17 @@ public async Task<List<ContractAttachmentDto>> GetAttachmentsAsync(Guid contract
         })
         .ToListAsync();
 }
+
+public async Task<List<ContractDto>> GetExpiringSoonAsync()
+{
+    var thresholdDate = DateTime.UtcNow.AddDays(30);
+
+    var contracts = await _context.Contracts
+        .Where(c => c.Status == "Active" && c.EndDate <= thresholdDate && c.EndDate >= DateTime.UtcNow)
+        .OrderBy(c => c.EndDate)
+        .ToListAsync();
+
+    return contracts.Select(c => MapToDto(c)).ToList();
+}
     }
 }
