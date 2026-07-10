@@ -89,3 +89,14 @@ export async function downloadQuotationPdf(id, quotationNumber) {
     link.remove();
     window.URL.revokeObjectURL(url);
 }
+
+export async function deleteQuotation(id) {
+    const response = await fetch(`${BASE_URL}/${id}`, {
+        method: "DELETE",
+        headers: getAuthHeaders(),
+    });
+    if (!response.ok) {
+        const errorData = await response.json();
+        throw errorData;
+    }
+}

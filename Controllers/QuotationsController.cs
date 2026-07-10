@@ -106,5 +106,20 @@ namespace CSF.API.Controllers
 
             return File(pdfBytes, "application/pdf", $"{quotation.QuotationNumber}.pdf");
         }
+
+        [HttpDelete("{id}")]
+public async Task<IActionResult> Delete(Guid id)
+{
+    try
+    {
+        var success = await _quotationService.DeleteAsync(id);
+        if (!success) return NotFound();
+        return NoContent();
+    }
+    catch (InvalidOperationException ex)
+    {
+        return BadRequest(new { message = ex.Message });
+    }
+}
     }
 }

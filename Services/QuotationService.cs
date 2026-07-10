@@ -153,5 +153,24 @@ public async Task<QuotationDto> RejectAsync(Guid quotationId, string? username)
     await _context.SaveChangesAsync();
     return MapToDto(quotation);
 }
+
+
+public async Task<bool> DeleteAsync(Guid id)
+{
+    var quotation = await _context.Quotations.FindAsync(id);
+    if (quotation == null) return false;
+
+    if (quotation.Status != "Draft")
+        throw new InvalidOperationException(
+            $"Sadece 'Draft' durumundaki teklifler silinebilir. Mevcut durum: {quotation.Status}");
+
+    var hasContract = await _context.Contracts.AnyAsync(c => c.QuotationID == id);
+    if (hasContract)
+        throw new InvalidOperationException("Bu teklife bağlı bir sözleşme var, silinemez.");
+
+    _context.Quotations.Remove(quotation);
+    await _context.SaveChangesAsync();
+    return true;
+}
     }
 }

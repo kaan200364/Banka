@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { getQuotations, approveQuotation, rejectQuotation, downloadQuotationPdf } from "../api/quotationApi";
+import { getQuotations, approveQuotation, rejectQuotation, downloadQuotationPdf, deleteQuotation } from "../api/quotationApi";
 
 const STATUS_LABELS = {
     Draft: "Taslak",
@@ -73,6 +73,18 @@ function QuotationList({ userRole, onEdit, refreshTrigger }) {
         }
     }
 
+    async function handleDelete(id, quotationNumber) {
+        const confirmed = window.confirm(`"${quotationNumber}" teklifini silmek istediğinize emin misiniz?`);
+        if (!confirmed) return;
+
+        try {
+            await deleteQuotation(id);
+            load();
+        } catch (err) {
+            alert(err.message || "Silme başarısız oldu.");
+        }
+    }
+
     return (
         <div className="customer-list">
             <div className="search-bar">
@@ -118,6 +130,9 @@ function QuotationList({ userRole, onEdit, refreshTrigger }) {
                                             )}
                                             {canApprove && q.status === "Draft" && (
                                                 <button className="danger" onClick={() => handleReject(q.quotationID)}>Reddet</button>
+                                            )}
+                                            {q.status === "Draft" && (
+                                                <button className="danger" onClick={() => handleDelete(q.quotationID, q.quotationNumber)}>Sil</button>
                                             )}
                                             <button onClick={() => handleDownloadPdf(q.quotationID, q.quotationNumber)}>PDF</button>
                                         </td>
