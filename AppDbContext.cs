@@ -23,6 +23,7 @@ public DbSet<TaskComment> TaskComments => Set<TaskComment>();
 public DbSet<TaskAttachment> TaskAttachments => Set<TaskAttachment>();
 public DbSet<ContractAttachment> ContractAttachments => Set<ContractAttachment>();
 public DbSet<TaskDependency> TaskDependencies => Set<TaskDependency>();
+public DbSet<TaskActivity> TaskActivities => Set<TaskActivity>();
 
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
@@ -155,6 +156,13 @@ modelBuilder.Entity<TaskDependency>(entity =>
           .WithMany()
           .HasForeignKey(d => d.DependsOnTaskID)
           .OnDelete(DeleteBehavior.Restrict);
+});
+
+modelBuilder.Entity<TaskActivity>(entity =>
+{
+    entity.HasKey(a => a.ActivityID);
+    entity.Property(a => a.ActivityType).IsRequired().HasMaxLength(50);
+    entity.Property(a => a.Description).IsRequired().HasMaxLength(500);
 });
         }
     }

@@ -139,3 +139,9 @@ export async function removeTaskDependency(dependencyId) {
     });
     if (!response.ok) throw new Error("Bağımlılık kaldırılamadı");
 }
+
+export async function getTaskActivity(taskId) {
+    const response = await fetch(`${BASE_URL}/${taskId}/activity`, { headers: getAuthHeaders() });
+    if (!response.ok) throw new Error("Aktivite geçmişi yüklenemedi");
+    return response.json();
+}

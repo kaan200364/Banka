@@ -25,4 +25,13 @@ namespace CSF.API.DTOs
         public string? UploadedBy { get; set; }
         public DateTime UploadedAt { get; set; }
     }
+
+    public class TaskActivityDto
+{
+    public Guid ActivityID { get; set; }
+    public string ActivityType { get; set; } = string.Empty;
+    public string Description { get; set; } = string.Empty;
+    public string? UserFullName { get; set; }
+    public DateTime Timestamp { get; set; }
+}
 }

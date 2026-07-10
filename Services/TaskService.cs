@@ -46,6 +46,15 @@ namespace CSF.API.Services
             };
 
             _context.ProjectTasks.Add(task);
+
+            _context.TaskActivities.Add(new TaskActivity
+            {
+                TaskID = task.TaskID,
+                ActivityType = "Created",
+                Description = $"Görev \"{username ?? "Sistem"}\" tarafından oluşturuldu.",
+                Timestamp = DateTime.UtcNow
+            });
+
             await _context.SaveChangesAsync();
 
             return MapToDto(task);
@@ -66,6 +75,14 @@ namespace CSF.API.Services
             task.DueDate = dto.DueDate;
             task.UpdatedAt = DateTime.UtcNow;
 
+            _context.TaskActivities.Add(new TaskActivity
+            {
+                TaskID = task.TaskID,
+                ActivityType = "Updated",
+                Description = "Görev bilgileri güncellendi.",
+                Timestamp = DateTime.UtcNow
+            });
+
             await _context.SaveChangesAsync();
             return MapToDto(task);
         }
@@ -78,7 +95,6 @@ namespace CSF.API.Services
             if (task == null)
                 throw new InvalidOperationException("Görev bulunamadı.");
 
-            // BAĞIMLILIK KONTROLÜ — sadece "InProgress" veya "Completed" yapılırken kontrol ediyoruz
             if (dto.Status == "InProgress" || dto.Status == "Completed")
             {
                 var dependencies = await _context.TaskDependencies
@@ -106,35 +122,47 @@ namespace CSF.API.Services
             if (!validStatuses.Contains(dto.Status))
                 throw new InvalidOperationException("Geçersiz durum değeri.");
 
+            var oldStatus = task.Status;
             task.Status = dto.Status;
             task.UpdatedAt = DateTime.UtcNow;
+
+            _context.TaskActivities.Add(new TaskActivity
+            {
+                TaskID = task.TaskID,
+                ActivityType = "StatusChanged",
+                Description = $"Durum \"{oldStatus}\" iken \"{dto.Status}\" olarak değiştirildi.",
+                Timestamp = DateTime.UtcNow
+            });
 
             await _context.SaveChangesAsync();
             return MapToDto(task);
         }
 
         public async Task<bool> DeleteAsync(Guid id)
-{
-    var task = await _context.ProjectTasks.FindAsync(id);
-    if (task == null) return false;
+        {
+            var task = await _context.ProjectTasks.FindAsync(id);
+            if (task == null) return false;
 
-    var hasSubtasks = await _context.ProjectTasks.AnyAsync(t => t.ParentTaskID == id);
-    if (hasSubtasks)
-        throw new InvalidOperationException(
-            "Bu görevin alt görevleri var. Önce alt görevleri silin veya başka bir göreve taşıyın.");
+            var hasSubtasks = await _context.ProjectTasks.AnyAsync(t => t.ParentTaskID == id);
+            if (hasSubtasks)
+                throw new InvalidOperationException(
+                    "Bu görevin alt görevleri var. Önce alt görevleri silin veya başka bir göreve taşıyın.");
 
-    var isDependedOnByOthers = await _context.TaskDependencies.AnyAsync(d => d.DependsOnTaskID == id);
-    if (isDependedOnByOthers)
-        throw new InvalidOperationException(
-            "Başka görevler bu göreve bağımlı. Önce o bağımlılıkları kaldırın.");
+            var isDependedOnByOthers = await _context.TaskDependencies.AnyAsync(d => d.DependsOnTaskID == id);
+            if (isDependedOnByOthers)
+                throw new InvalidOperationException(
+                    "Başka görevler bu göreve bağımlı. Önce o bağımlılıkları kaldırın.");
 
-    var ownDependencies = await _context.TaskDependencies.Where(d => d.TaskID == id).ToListAsync();
-    _context.TaskDependencies.RemoveRange(ownDependencies);
+            var ownDependencies = await _context.TaskDependencies.Where(d => d.TaskID == id).ToListAsync();
+            _context.TaskDependencies.RemoveRange(ownDependencies);
 
-    _context.ProjectTasks.Remove(task);
-    await _context.SaveChangesAsync();
-    return true;
-}
+            var ownActivities = await _context.TaskActivities.Where(a => a.TaskID == id).ToListAsync();
+            _context.TaskActivities.RemoveRange(ownActivities);
+
+            _context.ProjectTasks.Remove(task);
+            await _context.SaveChangesAsync();
+            return true;
+        }
 
         public async Task<PagedResultDto<TaskDto>> GetAllAsync(string? search, int page, int pageSize)
         {
@@ -342,6 +370,24 @@ namespace CSF.API.Services
                 _context.TaskDependencies.Remove(dependency);
                 await _context.SaveChangesAsync();
             }
+        }
+
+        // ---------- AKTİVİTE GEÇMİŞİ ----------
+
+        public async Task<List<TaskActivityDto>> GetActivityAsync(Guid taskId)
+        {
+            var activities = await _context.TaskActivities
+                .Where(a => a.TaskID == taskId)
+                .OrderByDescending(a => a.Timestamp)
+                .ToListAsync();
+
+            return activities.Select(a => new TaskActivityDto
+            {
+                ActivityID = a.ActivityID,
+                ActivityType = a.ActivityType,
+                Description = a.Description,
+                Timestamp = a.Timestamp
+            }).ToList();
         }
 
         private static TaskDto MapToDto(ProjectTask t)

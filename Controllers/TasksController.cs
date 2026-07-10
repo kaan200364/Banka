@@ -167,5 +167,11 @@ public async Task<IActionResult> RemoveDependency(Guid dependencyId)
     await _taskService.RemoveDependencyAsync(dependencyId);
     return NoContent();
 }
+
+[HttpGet("{id}/activity")]
+public async Task<ActionResult<List<TaskActivityDto>>> GetActivity(Guid id)
+{
+    return Ok(await _taskService.GetActivityAsync(id));
+}
     }
 }

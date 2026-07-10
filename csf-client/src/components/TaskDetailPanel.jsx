@@ -3,6 +3,7 @@ import {
     getTaskComments, addTaskComment,
     getTaskAttachments, uploadTaskAttachment,
     getTaskDependencies, addTaskDependency, removeTaskDependency,
+    getTaskActivity,
     getTasks,
 } from "../api/taskApi";
 
@@ -14,6 +15,7 @@ function TaskDetailPanel({ taskId, currentProjectId }) {
     const [dependencies, setDependencies] = useState([]);
     const [availableTasks, setAvailableTasks] = useState([]);
     const [selectedDependency, setSelectedDependency] = useState("");
+    const [activities, setActivities] = useState([]);
 
     useEffect(() => {
         loadData();
@@ -21,11 +23,12 @@ function TaskDetailPanel({ taskId, currentProjectId }) {
 
     async function loadData() {
         try {
-            const [commentsData, attachmentsData, dependenciesData, allTasksResult] = await Promise.all([
+            const [commentsData, attachmentsData, dependenciesData, allTasksResult, activityData] = await Promise.all([
                 getTaskComments(taskId),
                 getTaskAttachments(taskId),
                 getTaskDependencies(taskId),
                 getTasks("", 1, 100),
+                getTaskActivity(taskId),
             ]);
             setComments(commentsData);
             setAttachments(attachmentsData);
@@ -33,6 +36,7 @@ function TaskDetailPanel({ taskId, currentProjectId }) {
             setAvailableTasks(
                 allTasksResult.items.filter((t) => t.projectID === currentProjectId && t.taskID !== taskId)
             );
+            setActivities(activityData);
         } catch (err) {
             console.error(err);
         }
@@ -167,6 +171,22 @@ function TaskDetailPanel({ taskId, currentProjectId }) {
                     </select>
                     <button onClick={handleAddDependency}>Ekle</button>
                 </div>
+            </div>
+
+            <div className="task-detail-section">
+                <h4>Aktivite Geçmişi</h4>
+                {activities.length === 0 ? (
+                    <p className="empty-state">Henüz aktivite kaydı yok.</p>
+                ) : (
+                    <ul className="comment-list">
+                        {activities.map((a) => (
+                            <li key={a.activityID}>
+                                <span className="comment-date">{new Date(a.timestamp).toLocaleString("tr-TR")}</span>
+                                <p>{a.description}</p>
+                            </li>
+                        ))}
+                    </ul>
+                )}
             </div>
         </div>
     );
