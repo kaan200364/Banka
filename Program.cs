@@ -35,6 +35,7 @@ builder.Services.AddScoped<ReportService>();
 builder.Services.AddScoped<QuotationPdfService>();
 builder.Services.AddScoped<ReportExportService>();
 builder.Services.AddScoped<SupplierService>();
+builder.Services.AddScoped<TwoFactorService>();
     var jwtKey = builder.Configuration["Jwt:Key"];
 var jwtIssuer = builder.Configuration["Jwt:Issuer"];
 var jwtAudience = builder.Configuration["Jwt:Audience"];

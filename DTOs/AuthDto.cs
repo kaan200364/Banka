@@ -32,6 +32,7 @@ public string Password { get; set; } = string.Empty;
 
         [Required]
         public string Password { get; set; } = string.Empty;
+        public string? TwoFactorCode { get; set; }
     }
 
   public class AuthResponseDto
@@ -63,5 +64,17 @@ public class ChangePasswordDto
     @"^(?=.*[0-9])(?=.*[!@#$%^&*(),.?"":{}|<>]).{8,}$",
     ErrorMessage = "Yeni şifre en az 8 karakter olmalı, en az bir rakam ve bir özel karakter içermelidir.")]
 public string NewPassword { get; set; } = string.Empty;
+}
+
+public class Enable2FADto
+{
+    public string SecretKey { get; set; } = string.Empty;
+    public string QrCodeImageBase64 { get; set; } = string.Empty;
+}
+
+public class Verify2FADto
+{
+    [Required(ErrorMessage = "Kod zorunludur.")]
+    public string Code { get; set; } = string.Empty;
 }
 }

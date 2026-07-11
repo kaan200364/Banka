@@ -11,14 +11,16 @@ namespace CSF.API.Controllers
     [Route("api/v1/[controller]")]
     public class AuthController : ControllerBase
     {
-        private readonly AuthService _authService;
-        private readonly AppDbContext _context;
+       private readonly AuthService _authService;
+private readonly AppDbContext _context;
+private readonly TwoFactorService _twoFactorService;
 
-        public AuthController(AuthService authService, AppDbContext context)
-        {
-            _authService = authService;
-            _context = context;
-        }
+public AuthController(AuthService authService, AppDbContext context, TwoFactorService twoFactorService)
+{
+    _authService = authService;
+    _context = context;
+    _twoFactorService = twoFactorService;
+}
 
         // POST /api/v1/auth/register
         [HttpPost("register")]
@@ -44,6 +46,10 @@ public async Task<ActionResult<AuthResponseDto>> Login(LoginDto dto)
 
         return Ok(result);
     }
+    catch (InvalidOperationException ex) when (ex.Message == "TWOFA_REQUIRED")
+    {
+        return Ok(new { requiresTwoFactor = true });
+    }
     catch (InvalidOperationException ex)
     {
         return BadRequest(new { message = ex.Message });
@@ -58,15 +64,16 @@ public async Task<ActionResult<AuthResponseDto>> Login(LoginDto dto)
             var user = await _context.Users.FindAsync(Guid.Parse(userId!));
             if (user == null) return NotFound();
 
-            return Ok(new UserDto
-            {
-                UserID = user.UserID,
-                Username = user.Username,
-                FullName = user.FullName,
-                Email = user.Email,
-                Role = user.Role,
-                Status = user.Status
-            });
+          return Ok(new UserDto
+{
+    UserID = user.UserID,
+    Username = user.Username,
+    FullName = user.FullName,
+    Email = user.Email,
+    Role = user.Role,
+    Status = user.Status,
+    TwoFactorEnabled = user.TwoFactorEnabled
+});
         }
 
         [HttpPut("me")]
@@ -121,6 +128,56 @@ public async Task<ActionResult<List<SecurityLogDto>>> GetSecurityLogs()
         .ToListAsync();
 
     return Ok(logs);
+}
+
+
+[HttpPost("2fa/setup")]
+[Authorize(Roles = "Administrator")]
+public async Task<ActionResult<Enable2FADto>> Setup2FA()
+{
+    var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+    var user = await _context.Users.FindAsync(Guid.Parse(userId!));
+    if (user == null) return NotFound();
+
+    var (secretKey, qrCodeBase64) = _twoFactorService.GenerateSecret(user.Username);
+
+    user.TwoFactorSecret = secretKey;
+    await _context.SaveChangesAsync();
+
+    return Ok(new Enable2FADto { SecretKey = secretKey, QrCodeImageBase64 = qrCodeBase64 });
+}
+
+[HttpPost("2fa/confirm")]
+[Authorize(Roles = "Administrator")]
+public async Task<IActionResult> Confirm2FA(Verify2FADto dto)
+{
+    var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+    var user = await _context.Users.FindAsync(Guid.Parse(userId!));
+    if (user == null || string.IsNullOrEmpty(user.TwoFactorSecret))
+        return BadRequest(new { message = "Önce kurulum başlatılmalı." });
+
+    bool valid = _twoFactorService.VerifyCode(user.TwoFactorSecret, dto.Code);
+    if (!valid) return BadRequest(new { message = "Geçersiz kod, tekrar deneyin." });
+
+    user.TwoFactorEnabled = true;
+    await _context.SaveChangesAsync();
+
+    return Ok(new { message = "2FA başarıyla etkinleştirildi." });
+}
+
+[HttpPost("2fa/disable")]
+[Authorize(Roles = "Administrator")]
+public async Task<IActionResult> Disable2FA()
+{
+    var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+    var user = await _context.Users.FindAsync(Guid.Parse(userId!));
+    if (user == null) return NotFound();
+
+    user.TwoFactorEnabled = false;
+    user.TwoFactorSecret = null;
+    await _context.SaveChangesAsync();
+
+    return Ok(new { message = "2FA devre dışı bırakıldı." });
 }
     }
 }

@@ -18,5 +18,8 @@ namespace CSF.API
 
         public int FailedLoginAttempts { get; set; } = 0;
 public DateTime? LockoutEndTime { get; set; }
+
+public string? TwoFactorSecret { get; set; }
+public bool TwoFactorEnabled { get; set; } = false;
     }
 }

@@ -11,11 +11,13 @@ namespace CSF.API.Services
     {
         private readonly AppDbContext _context;
         private readonly IConfiguration _configuration;
+        private readonly TwoFactorService _twoFactorService;
 
-        public AuthService(AppDbContext context, IConfiguration configuration)
+        public AuthService(AppDbContext context, IConfiguration configuration, TwoFactorService twoFactorService)
         {
             _context = context;
             _configuration = configuration;
+            _twoFactorService = twoFactorService;
         }
 
         public async Task<AuthResponseDto?> RegisterAsync(RegisterDto dto)
@@ -58,7 +60,6 @@ namespace CSF.API.Services
                 return null;
             }
 
-            // KİLİT KONTROLÜ
             if (user.LockoutEndTime.HasValue && user.LockoutEndTime.Value > DateTime.UtcNow)
             {
                 var remainingMinutes = Math.Ceiling((user.LockoutEndTime.Value - DateTime.UtcNow).TotalMinutes);
@@ -67,7 +68,6 @@ namespace CSF.API.Services
                     $"Hesabınız çok fazla başarısız giriş denemesi nedeniyle kilitlendi. Lütfen {remainingMinutes} dakika sonra tekrar deneyin.");
             }
 
-            // Kilit süresi dolmuşsa, sayaçları sıfırla
             if (user.LockoutEndTime.HasValue && user.LockoutEndTime.Value <= DateTime.UtcNow)
             {
                 user.FailedLoginAttempts = 0;
@@ -90,9 +90,26 @@ namespace CSF.API.Services
                 return null;
             }
 
-            // Şifre doğru — başarısız deneme sayacını sıfırla
             user.FailedLoginAttempts = 0;
             user.LockoutEndTime = null;
+
+            // 2FA KONTROLÜ — şifre doğrulandıktan sonra, token üretilmeden ÖNCE
+            if (user.TwoFactorEnabled)
+            {
+                if (string.IsNullOrWhiteSpace(dto.TwoFactorCode))
+                {
+                    await _context.SaveChangesAsync();
+                    throw new InvalidOperationException("TWOFA_REQUIRED");
+                }
+
+                var codeValid = _twoFactorService.VerifyCode(user.TwoFactorSecret!, dto.TwoFactorCode);
+                if (!codeValid)
+                {
+                    await _context.SaveChangesAsync();
+                    await LogSecurityEventAsync(dto.Username, false, ipAddress, "Geçersiz 2FA kodu.");
+                    throw new InvalidOperationException("Geçersiz doğrulama kodu.");
+                }
+            }
 
             await _context.SaveChangesAsync();
 

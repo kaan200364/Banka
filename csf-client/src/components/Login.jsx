@@ -4,6 +4,8 @@ import { login } from "../api/authApi";
 function Login({ onLoginSuccess }) {
     const [username, setUsername] = useState("");
     const [password, setPassword] = useState("");
+    const [twoFactorCode, setTwoFactorCode] = useState("");
+    const [needsTwoFactor, setNeedsTwoFactor] = useState(false);
     const [error, setError] = useState(null);
     const [loading, setLoading] = useState(false);
 
@@ -13,7 +15,14 @@ function Login({ onLoginSuccess }) {
         setLoading(true);
 
         try {
-            const result = await login(username, password);
+            const result = await login(username, password, needsTwoFactor ? twoFactorCode : null);
+
+            if (result.requiresTwoFactor) {
+                setNeedsTwoFactor(true);
+                setLoading(false);
+                return;
+            }
+
             localStorage.setItem("token", result.token);
             localStorage.setItem("username", result.username);
             localStorage.setItem("fullName", result.fullName);
@@ -31,31 +40,50 @@ function Login({ onLoginSuccess }) {
         <div className="login-page">
             <form className="login-form" onSubmit={handleSubmit}>
                 <h1>CSF Yönetim Sistemi</h1>
-                <p className="login-subtitle">Devam etmek için giriş yapın</p>
+                <p className="login-subtitle">
+                    {needsTwoFactor ? "Doğrulama kodunuzu girin" : "Devam etmek için giriş yapın"}
+                </p>
 
-                <div className="form-group">
-                    <label>Kullanıcı Adı</label>
-                    <input
-                        type="text"
-                        value={username}
-                        onChange={(e) => setUsername(e.target.value)}
-                        autoFocus
-                    />
-                </div>
+                {!needsTwoFactor && (
+                    <>
+                        <div className="form-group">
+                            <label>Kullanıcı Adı</label>
+                            <input
+                                type="text"
+                                value={username}
+                                onChange={(e) => setUsername(e.target.value)}
+                                autoFocus
+                            />
+                        </div>
 
-                <div className="form-group">
-                    <label>Şifre</label>
-                    <input
-                        type="password"
-                        value={password}
-                        onChange={(e) => setPassword(e.target.value)}
-                    />
-                </div>
+                        <div className="form-group">
+                            <label>Şifre</label>
+                            <input
+                                type="password"
+                                value={password}
+                                onChange={(e) => setPassword(e.target.value)}
+                            />
+                        </div>
+                    </>
+                )}
+
+                {needsTwoFactor && (
+                    <div className="form-group">
+                        <label>Doğrulama Kodu</label>
+                        <input
+                            type="text"
+                            value={twoFactorCode}
+                            onChange={(e) => setTwoFactorCode(e.target.value)}
+                            maxLength={6}
+                            autoFocus
+                        />
+                    </div>
+                )}
 
                 {error && <p className="field-error">{error}</p>}
 
                 <button type="submit" disabled={loading}>
-                    {loading ? "Giriş yapılıyor..." : "Giriş Yap"}
+                    {loading ? "Giriş yapılıyor..." : needsTwoFactor ? "Doğrula" : "Giriş Yap"}
                 </button>
             </form>
         </div>
